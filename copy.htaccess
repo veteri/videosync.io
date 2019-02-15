@@ -1,0 +1,18 @@
+RewriteEngine On
+
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+RewriteCond %{REQUEST_URI} ^/socket.io [NC]
+RewriteCond %{QUERY_STRING} transport=websocket [NC]
+RewriteRule (.*) ws://localhost:51911/$1 [P,L]
+
+RewriteRule ^$ http://127.0.0.1:51911/ [P,L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ http://127.0.0.1:51911/$1 [P,L]
+
+
+
+
+

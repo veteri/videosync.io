@@ -1,0 +1,625 @@
+* {
+  box-sizing: border-box;
+  font-family: 'Montserrat', sans-serif;
+  margin: 0;
+}
+
+body {
+  background-color: #222;
+  margin: 0;
+}
+
+.hidden {
+  display: none;
+}
+
+.clearfix::after {
+  display: table;
+  content: "";
+  clear: both;
+}
+
+.disclaimer {
+  width: 600px;
+  padding: 20px;
+  font-size: 1rem;
+  font-style: italic;
+  color: rebeccapurple;
+}
+
+button {
+  cursor: pointer;
+}
+
+.button {
+  padding: 20px;
+  border-radius: 3px;
+  border: none;
+  color: #fff;
+}
+
+header {
+  position: relative;
+  width: 100%;
+  height: 80px;
+  background: #111;
+}
+
+header > .logo {
+  float: left;
+  padding: 10px;
+   height: 80px;
+}
+
+header > .search {
+  /*position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);*/
+  float: left;
+  width: 40%;
+  margin-left: calc(30% - 217px);/* 217 = logo*/
+}
+
+header > .search > .yt-link {
+  display: block;
+  float: left;
+  width: calc(100% - 87px * 2); /*86px * 2 = 2 buttons*/
+  min-width: 150px;
+  margin-top: 12px;
+  padding: 20px;
+  border: none;
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+}
+
+header > .search > .yt-link.error {
+  color: red;
+  font-weight: bold;
+}
+
+header > .search > .play,
+header > .search > .add-playlist {
+  float: left;
+  display: block;
+  padding: 0 30px;
+  margin-top: 12px;
+  height: 57px;
+  border: none;
+  font-size: 1.625rem;
+  color: #ebebeb;
+  background: #666;
+}
+
+header > .search > .play {
+  border-right: 1px solid #333;
+}
+
+header > .search > .add-playlist {
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+}
+
+.container {
+  position: relative;
+  padding: 20px;
+}
+
+.player {
+  position: relative;
+  float: left;
+  width: 70%;
+}
+
+.player:hover .video-controls {
+  visibility: visible;
+}
+
+#player {
+  width: 100%;
+  height: 720px;
+  /*border: 1px solid #444;*/
+  background-color: #000;
+}
+
+.loader {
+  width: 400px;
+  padding: 20px;
+  border-radius: 10px;
+  position: absolute;
+  top: 50%;
+  left: 35%;
+  transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.3);
+  text-align: center;
+}
+
+.loader > .svg {
+  width: 200px;
+}
+
+.loader > .label {
+  padding: 10px;
+  letter-spacing: 2px;
+  color: #fff;
+  text-align: center;
+  font-weight: bold;
+}
+
+.video-controls {
+  visibility: hidden;
+  width: 100%;
+  height: 50px;
+  background: rgba(0,0,0,0.7);
+  position: absolute;
+  bottom: 5px;
+  color: #fff;
+  line-height: 50px;
+}
+
+.video-controls > .play {
+   float: left;
+  width: 50px;
+  height: 50px;
+}
+
+.video-controls > .play button {
+  padding: 0;
+  display: inline-block;
+  font-size: 1.2rem;
+  width: 100%;
+  text-align: center;
+  background: none;
+  border: none;
+  color: #fff;
+}
+
+
+
+.video-controls > .volume {
+  float: left;
+  width: 100px;
+  height: 50px;
+  padding-left: 10px;
+  padding-right: 10px;
+  line-height: 50px;
+}
+
+.video-controls > .volume > input {
+  width: 100%;
+  height: 3px;
+  vertical-align: middle;
+  -webkit-appearance: none;  /* Override default CSS styles */
+  appearance: none;
+  outline: none; /* Remove outline */
+}
+
+.video-controls > .volume > input::-webkit-slider-thumb {
+  -webkit-appearance: none; /* Override default look */
+  appearance: none;
+  width: 10px; /* Set a specific slider handle width */
+  height: 10px; /* Slider handle height */
+  background: #e5e5e5; /* Green background */
+  cursor: pointer; /* Cursor on hover */
+  border: none;
+  border-radius: 50%;
+}
+
+.video-controls > .volume > input::-moz-range-thumb {
+  width: 10px; /* Set a specific slider handle width */
+  height: 10px; /* Slider handle height */
+  background: #e5e5e5; /* Green background */
+  cursor: pointer; /* Cursor on hover */
+  border: none;
+  border-radius: 50%;
+}
+
+.video-controls > .time {
+  float: left;
+  width: 140px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.video-controls .slider {
+  float: left;
+  padding-left: 20px;
+  padding-right: 20px;
+  width: calc(100% - 50px - 100px - 140px);
+  height: 50px;
+  border-left: 1px solid #222;
+}
+
+.video-controls > .slider > #slider {
+  margin: 0;
+  vertical-align: middle;
+  -webkit-appearance: none;  /* Override default CSS styles */
+  appearance: none;
+  height: 3px;
+}
+
+.video-controls > .slider > input {
+  width: 100%;
+}
+
+.video-controls > .slider > #slider::-webkit-slider-thumb {
+  -webkit-appearance: none; /* Override default look */
+  appearance: none;
+  width: 15px; /* Set a specific slider handle width */
+  height: 15px; /* Slider handle height */
+  background: #fa001a; /* Green background */
+  cursor: pointer; /* Cursor on hover */
+  border: none;
+  border-radius: 50%;
+}
+
+.video-controls > .slider > #slider::-moz-range-thumb {
+  width: 15px; /* Set a specific slider handle width */
+  height: 15px; /* Slider handle height */
+  background: #fa001a; /* Green background */
+  cursor: pointer; /* Cursor on hover */
+  border: none;
+  border-radius: 50%;
+}
+
+
+.chat {
+  float: left;
+  margin-left: 10px;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+  width: calc(30% - 10px);
+  height: 720px;
+}
+
+
+@keyframes sbx_pulse {
+  0% {
+    transform: scale(1) skew(0deg) rotateX(-20deg);
+  }
+  100% {
+    transform: scale(1.2) skew(5deg) rotateX(10deg);
+  }
+}
+
+@keyframes sbx_glow {
+    0% {
+        box-shadow: 0 0 15px #886330;
+    } 
+    
+    100% {
+        box-shadow: 0 0 30px #886330;
+    }
+}
+
+.chat .header {
+    position: relative;
+  padding: 20px 0;
+  text-align: center;
+  color: #ebebeb;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  font-size: 1.625rem;
+
+overflow: hidden;
+animation: 5s sbx_glow cubic-bezier(.86,0,.07,1) infinite alternate
+}
+
+.chat .header img {
+    height: 160px;
+    position: absolute;
+    top: -50px;
+    left: 0;
+    width: 100%;
+    z-index: 1;
+    transform: scale(1);
+    animation: 5s sbx_pulse cubic-bezier(.86,0,.07,1) infinite alternate
+}
+
+.chat .header .title,
+.chat .header i {
+    position: relative;
+    z-index: 1;
+}
+
+.chat .header .title {
+    padding: 10px;
+    background: rgba(0,0,0,0.56);
+    border-radius: 10px;
+}
+
+
+.chat .header .overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.45);
+    z-index: 1;
+}
+
+.chat > .messages {
+  border: 1px solid #444;
+  border-top: none;
+  height: calc(720px - 100px - 72px);
+  overflow-y: scroll;
+}
+
+.chat > .messages > .message {
+  background: #444;
+  color: #ccc;
+  min-height: 50px;
+  line-height: 30px;
+}
+
+.chat > .messages > .message img {
+    height: 32px;
+}
+
+.chat > .messages > .message.system {
+  border-left: 5px solid yellow;
+}
+
+.chat > .messages > .message.system > .author {
+  font-weight: bold;
+}
+
+.chat > .messages > .message.system > .content {
+  font-weight: bold;
+}
+
+.chat > .messages > .message:nth-child(even) {
+  background: #333;
+}
+
+.chat > .messages > .message > .author {
+  float: left;
+  padding: 10px;
+  font-weight: bold;
+  min-width: 10px;
+}
+
+.chat > .messages > .message > .content {
+  float: left;
+  padding: 10px;
+  padding-left: 0;
+}
+
+.chat > .chat-box {
+  height: 100px;
+  position: relative;
+}
+
+.chat > .chat-box > .show-emotes {
+  position: absolute;
+  right: 15px;
+  top: 10px;
+  font-size: 2rem;
+  cursor: pointer;
+  opacity: 0.4;
+}
+
+.chat > .chat-box > .show-emotes:hover {
+  transform: scale(0.9);
+}
+
+.chat > .chat-box > .emotes {
+  position: absolute;
+  padding: 10px;
+  height: 365px;
+  top: -370px;
+  left: 0;
+  width: 100%;
+  background: #111;
+  border-top-right-radius: 20px;
+  border-top-left-radius: 20px;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  opacity: 0.85;
+  overflow-y: scroll;
+}
+
+.chat > .chat-box > .emotes img:hover {
+  cursor: pointer;
+}
+
+
+.chat > .chat-box .content {
+  width: 100%;
+  height: 100px;
+  border: none;
+  padding: 10px;
+  padding-right: 30px;
+  font-size: 1.2rem;
+  background: #f4f4f4;
+}
+
+.online-users {
+  padding: 0 20px;
+  padding-bottom: 0;
+  width: 100%;
+  min-height: 50px;
+  overflow: hidden;
+}
+
+.online-users > .user {
+  float: right;
+  padding: 10px;
+  margin-left: 15px;
+  line-height: 20px;
+  background: #666;
+  border-radius: 5px;
+  margin-top: 10px;
+}
+
+.online-users > .user > .avatar {
+  float: left;
+  width: 20px;
+  height: 20px;
+}
+
+.online-users > .user > .name {
+  float: left;
+  margin-left: 5px;
+  color: #eee;
+}
+
+.container.additional-features {
+  padding-top: 0;
+}
+
+.playlist {
+  float: left;
+  width: 50%;
+}
+
+.playlist > .header,
+.history > .header {
+  background: #111;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  padding: 20px 0;
+  text-align: center;
+  font-size: 1.625rem;
+  color: #ebebeb;
+}
+
+.playlist > .body,
+.history > .body {
+  padding: 20px 0;
+  background: #333;
+  overflow-y: scroll;
+  height: 400px;
+}
+
+.history {
+  float: left;
+  margin-left: 20px;
+  width: calc(50% - 20px);
+}
+
+.video {
+  padding: 0 20px;
+  width: 100%;
+  color: #ebebeb;
+  font-size: 1.2rem;
+}
+
+.video:not(:first-child) {
+  margin-top: 20px;
+}
+
+.video > .thumb {
+  position: relative;
+  float: left;
+  width: 30%;
+  max-width: 175px;
+}
+
+.video > .thumb > img {
+  width: 100%;
+}
+
+.video > .thumb > .duration {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  padding: 0 5px;
+  font-size: 0.8rem;
+  background: rgba(0,0,0,0.8);
+}
+
+.video > .title {
+  float: left;
+  max-width: 60%;
+  padding-left: 20px;
+  text-align: left;
+}
+
+.video > .title:hover,
+.video > .thumb:hover {
+  cursor: pointer;
+}
+
+.video > .remove {
+  float: right;
+  font-size: 1.5rem;
+}
+
+.video > .remove:hover i {
+  transform: scale(1.1);
+  cursor: pointer;
+  color: #ffaa00;
+}
+
+.video > .add-to-playlist {
+  float: right;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.video > .add-to-playlist:hover {
+  transform: scale(1.1);
+  color: #ffaa00;
+}
+
+footer {
+  margin: 0 20px 20px 20px;
+  padding: 20px 0;
+  text-align: center;
+  color: #ebebeb;
+  font-size: 1.1rem;
+  background: #111;
+  border-radius: 5px;
+}
+
+footer > .firefox {
+  width: 30px;
+  vertical-align: middle;
+}
+
+
+/**
+Queries
+ */
+
+@media screen and (max-width: 1000px) {
+  .player,
+  .chat,
+  .playlist,
+  .history {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .search {
+    //position: static;
+    float: right !important;
+    width: 60% !important;
+    margin-right: 20px;
+  }
+
+  #player {
+    height: 400px;
+  }
+
+  .chat {
+    height: 400px;
+  }
+
+  .chat > .messages {
+    height: calc(400px - 100px - 72px);
+  }
+
+  .history {
+    margin-top: 20px;
+  }
+}
+
+@media screen and (max-width: 650px) {
+  .search {
+    width: 100% !important;
+    margin-right: 0 !important;
+  }
+}
