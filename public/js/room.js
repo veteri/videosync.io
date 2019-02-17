@@ -333,7 +333,7 @@ class VideoLinkInput extends EventEmitter {
 
 const clientRoom = {
 
-    socket: io({transports: ["polling"]}),
+    socket: io(),
     
     connectToRoom() {
         return new Promise((resolve, reject) => {
@@ -343,7 +343,7 @@ const clientRoom = {
 
             this.socket.emit("join-room", id); 
             this.socket.on("join-success", id => {
-                this.socket = io("/" + id, {transports: ["polling"]});
+                this.socket = io("/" + id);
                 console.log(`Connected to room ${id}`);
                 resolve();
             });
