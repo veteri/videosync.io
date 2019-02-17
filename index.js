@@ -52,6 +52,33 @@ class User {
     }
 }
 
+class UserCollection {
+    constructor() {
+        this.users = [];
+    }
+
+    getPlain() {
+        return this.users.map(user => ({ name: user.name }));
+    }
+
+    add(user) {
+        this.users.push(user);
+    }
+
+    findByName(name) {
+        return this.users.find(user => user.name === name);
+    }   
+
+    remove(user) {
+        let index = this.users.findIndex(_user => _user.name === user.name);
+        this.users.splice(index, 1);
+    }
+
+    exists(user) {
+        return this.users.findIndex(_user => _user.name === user.name) !== -1;
+    }
+}
+
 class YoutubeVideo {
     constructor(id, title, length) {
         this.id = id;
@@ -71,7 +98,9 @@ class Playlist {
     }
 
     remove(video) {
-        this.videos.filter(currentVideo => currentVideo.id !== video.id);
+        this.videos = this.videos.filter(currentVideo => {
+            return currentVideo.id !== video.id;
+        });
     }
 
 }
@@ -117,12 +146,16 @@ class WatchTogetherRoom extends EventEmitter {
         super();
         this.id = id; 
         this.socket = io.of("/" + id);
-        this.video = null;
-        this.users = [];
+        this.video    = null;
+        this.users    = new UserCollection();
         this.playlist = new Playlist();
-        this.history = new History();
-        this.chat = new Chat();
+        this.history  = new History();
+        this.chat     = new Chat();
         this.bindEvents();
+    }
+
+    log(message) {
+        console.log(`[${this.id}] ${message}`);
     }
 
     processEvent(handler, socket) {
@@ -131,8 +164,12 @@ class WatchTogetherRoom extends EventEmitter {
         };
     }
 
-    bindEvent(socket, event, handler) {
-        socket.on(event, this.processEvent(handler, socket));
+    bindSocketEvent(socket, event, handler) {
+        socket.on(event, this.processEvent(handler.bind(this), socket));
+    }
+
+    emitUpdateUsers() {
+        this.socket.emit("update-users", this.users.getPlain());
     }
 
     onVideoPause(socket, data) {
@@ -140,10 +177,48 @@ class WatchTogetherRoom extends EventEmitter {
         console.log("sending ok");
     }
 
+    onChatMessage(socket, message) {
+        console.log(`${message.author}: ${message.content}`);
+        this.socket.emit("chat-message", message);
+    }
+
+    onNewUser(socket, name) {
+        let user = new User(name);
+        
+        console.log(`New User: ${name}`);
+        if (!this.users.exists(user)) {
+            console.log("User doesnt exist");
+            //Save unique name on socket
+            socket.name = name;
+            this.users.add(user);
+        } else {
+            console.log("User already exists");    
+        }
+        
+        //Notify everyone of the new person 
+        this.emitUpdateUsers();
+        
+        //Send latest state to the client
+        socket.emit("update-chat", this.chat.getLatest());
+        socket.emit("update-playlist");
+        socket.emit("update-history");
+    }
+
+    onDisconnect(socket, name) {
+        if (socket.name) {
+            this.users.remove(this.users.findByName(socket.name));
+            this.emitUpdateUsers();
+            console.log(`[${this.id}] Disconnected: ${socket.name}`);
+        }
+    }
+
     bindEvents() {
         this.socket.on("connection", socket => {
             console.log("Someone connected to room " + this.id);
-            this.bindEvent(socket, "video-pause", this.onVideoPause);
+            this.bindSocketEvent(socket, "disconnect", this.onDisconnect);
+            this.bindSocketEvent(socket, "new-user", this.onNewUser);
+            this.bindSocketEvent(socket, "video-pause", this.onVideoPause);
+            this.bindSocketEvent(socket, "chat-message", this.onChatMessage);            
         });
     }
 }
