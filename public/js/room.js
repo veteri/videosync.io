@@ -22,6 +22,8 @@ class UserDisplay {
                  <div class="name">{{name}}</div>
              </div>`
         );
+
+        this.bindEvents();
     }
 
     buildHtml(users) {
@@ -37,14 +39,10 @@ class UserDisplay {
     }
 
     bindEvents()  {
-        this.socket.on("update-users", users => {
+        this.socket.on("users-update", users => {
             this.resetContainer();
             this.fillContainer(this.buildHtml(users));
         });
-    }
-
-    init() {
-        this.bindEvents();
     }
 }
 
@@ -72,6 +70,8 @@ class Chat {
                 <div class="content">{{content}}</div>
             </div>`
         );
+
+        this.bindEvents();
     }
 
     getMessage() {
@@ -83,6 +83,23 @@ class Chat {
 
     addMessage(message) {
         this.container.innerHTML += this.messageTemplate.render(message);
+    }
+
+    setMessageHtml(html) {
+        console.log("setting html in chat to " + html);
+        this.container.innerHTML = html;
+    }
+
+    buildMessageHtml(messages) {
+        return messages.reduce((html, message) => {
+            console.log(message);
+            let emotedMsg = this.wrapEmotes(message);
+            console.log(emotedMsg);
+            return html + this.messageTemplate.render(this.wrapEmotes(message));
+        }, ""); 
+    }
+
+    scrollDown() {
         this.container.scrollTop = this.container.scrollHeight;
     }
     
@@ -185,10 +202,9 @@ class Chat {
             this.addMessage(this.wrapEmotes(message));
         });
 
-        this.socket.on("update-chat", messages => {
-            messages.forEach(message => {
-                this.addMessage(this.wrapEmotes(message));
-            });
+        this.socket.on("chat-update", messages => {
+            console.log(messages);
+            this.setMessageHtml(this.buildMessageHtml(messages));
         });
     }
 }
@@ -221,6 +237,7 @@ class VideoLinkInput extends EventEmitter {
         this.input         = options.input;
         this.playVideo     = options.playVideo;
         this.addToPlaylist = options.addToPlaylist;
+        this.bindEvents();
     }
 
     showError() {
@@ -247,24 +264,25 @@ class VideoLinkInput extends EventEmitter {
 
         this.input.addEventListener("keyup", event => {
             if (event.keyCode === 13 && this.isYoutubeLink(this.input.value)) {
-                console.log("VideoLinkInput: Emitting play-video with " + this.input.value);
-                this.emit("play-video", this.input.value);
+                console.log("VideoLinkInput: Emitting video-play with " + this.input.value);
+                this.emit("video-play", this.input.value);
                 this.removeError();
             }
         });
 
         this.playVideo.addEventListener("click", event => {
             if (this.isYoutubeLink(this.input.value)) {
-                console.log("VideoLinkInput: Emitting play-video with " + this.input.value);
-                this.emit("play-video", this.input.value);
+                console.log("VideoLinkInput: Emitting video-play with " + this.input.value);
+                this.emit("video-play", this.input.value);
                 this.removeError();
             }
         });
 
         this.addToPlaylist.addEventListener("click", event => {
             if (this.isYoutubeLink(this.input.value)) {
-                console.log("VideoLinkInput: Emitting add-to-playlist with " + this.input.value);
-                this.emit("add-to-playlist", this.input.value);
+                console.log("VideoLinkInput: Emitting playlist-add with " + this.input.value);
+                this.emit("playlist-add", this.input.value);
+                this.socket
                 this.removeError();
             }
         });
@@ -272,8 +290,9 @@ class VideoLinkInput extends EventEmitter {
 };
 
 
- class Playlist {
+ class Playlist extends EventEmitter {
     constructor(socket, options) {
+        super();
         this.socket = socket;
         this.list   = options.list
         
@@ -281,12 +300,14 @@ class VideoLinkInput extends EventEmitter {
             `<div class="video clearfix" data-id="{{id}}">
                 <div class="thumb">
                     <img src="{{thumb}}" alt="Thumb">
-                    <span class="duration">{{duration}}</span>
+                    <span class="length">{{timeString}}</span>
                 </div>
                 <div class="title">{{title}}</div>
                 <div class="remove"><i class="fas fa-trash-alt"></i></div>
             </div>`
         );
+
+        this.bindEvents();
     }
 
     add(video) {
@@ -298,42 +319,122 @@ class VideoLinkInput extends EventEmitter {
         this.list.removeChild(video);
     }
 
+    setHtml(html) {
+        this.list.innerHTML = html;
+    }
+
+    buildHtml(videos) {
+        return videos.reduce((html, video) => html + this.videoTemplate.render(video), "");
+    }
+    
     videoExists(id) {
         return this.list.querySelector(`[data-id="${id}"`) !== null;
     }
 
+    emitNewVideo(link) {
+        this.socket.emit("playlist-new-video", link);
+    }
+
     bindEvents() {
-        let self = this;
 
-        this.socket.on("playlist-new-video",    video => { this.add(video); });
-        this.socket.on("playlist-remove-video", video => { this.remove(video); });
-
-        socket.on("get-playlist", function(message) {
-           message.forEach(video => self.add(video));
+        this.socket.on("playlist-new-video",    video => this.add(video));
+        this.socket.on("playlist-remove-video", video => this.remove(video));
+        this.socket.on("playlist-update", videos => {
+            this.setHtml(this.buildHtml(videos));
         });
 
-        this.list.addEventListener("click", function(event) {
+        this.list.addEventListener("click", event => {
 
             let video = event.target.closest(".video");
-
             if (video === null) {
                 return;
             }
 
             let id = video.getAttribute("data-id");
-
             if(event.target.parentElement.classList.contains("remove")) {
-                socket.emit("playlist-remove-video", { id: id });
-            }   else if (event.target.classList.contains("title") || event.target.parentElement.classList.contains("thumb")) {
-                player.emitVideoChange("https://www.youtube.com/watch?v=" + id);
+                
+                this.socket.emit("playlist-remove-video", { id: id });
+
+            }   else if (event.target.classList.contains("title") 
+                        || event.target.parentElement.classList.contains("thumb")) {
+
+                this.emit("video-play", id);
             }
         });
     }
 }
 
+class W2GYoutubePlayer {
+    constructor(socket, id) {
+        this.socket = socket;
+        this.id     = id;
+        this.player = null;
+        this.bindEvents();
+        this.loadIFrameAPI();
+    }
+
+    loadIFrameAPI() {
+        let tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        let firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        window.onYouTubeIframeAPIReady = function() {
+            document.dispatchEvent(new CustomEvent('onYouTubeIframeAPIReady', {}))
+        };
+    }
+
+    onPlayerReady() {
+        console.log("onPlayerReady Todo");
+    }
+
+    onPlayerStateChange() {
+        console.log("onPlayerStateChange Todo");
+    }
+
+    createPlayer() {
+        this.player = new YT.Player(this.id, {
+            height: '360',
+            width: '640',
+            videoId: '',
+            playerVars: {
+                autoplay: 0,
+                controls: 0,
+                fs      : 1
+            },
+            events: {
+                'onReady': this.onPlayerReady,
+                'onStateChange': this.onPlayerStateChange
+            }
+        });
+        console.info("W2GYoutubePlayer ready.");
+    }
+
+    getId(link) {
+        //Todo: Make proper regex, maybe take room.js one idk
+        return link.split("watch?v=")[1].split("&list")[0].substr(0, 11);
+    }
+
+    loadVideo(id) {
+        console.log("Loading video with id: " + id);
+        this.player.loadVideoById(id);
+    }
+
+    emitVideoChange(link) {
+        this.socket.emit("player-video-change", link);
+        console.log("Emitting player-video-change");
+    }
+
+    bindEvents() {
+        document.addEventListener('onYouTubeIframeAPIReady', () => this.createPlayer(), false);
+        this.socket.on("player-video-change", video => this.loadVideo(video.id));
+    }
+}
+
+
 const clientRoom = {
 
-    socket: io(),
+    socket: io({transports: ["websocket"]}),
     
     connectToRoom() {
         return new Promise((resolve, reject) => {
@@ -363,14 +464,21 @@ const clientRoom = {
     },
 
     bindEvents() {
-        console.log("Emitting new-user with name " + this.userDisplay.username);
-        this.socket.emit("new-user", this.userDisplay.username);
+        console.log("Emitting user-new with name " + this.userDisplay.username);
+        this.socket.emit("user-new", this.userDisplay.username);
 
         this.socket.on("disconnect", () => console.log("Disconnected..."));
         this.socket.on("reconnect", () => {
             console.log("Reconnected.");
-            this.socket.emit("new-user", this.userDisplay.username);
+            this.socket.emit("user-new", this.userDisplay.username);
         });
+
+        //Link link-input to player and playlist
+        this.videoLinkInput.on("video-play",   link => {
+            console.log("Forwarding play-video to player");
+            this.player.emitVideoChange(link)
+        });
+        this.videoLinkInput.on("playlist-add", link => this.playlist.emitNewVideo(link));
     },
 
     init() {
@@ -396,10 +504,13 @@ const clientRoom = {
                     addToPlaylist: document.querySelector(".search > .add-playlist"),
                 });
 
-                this.bindEvents(); 
-                [this.userDisplay, this.chat, this.videoLinkInput].forEach(component => {
-                    component.bindEvents();
+                this.playlist = new Playlist(this.socket, {
+                    list: document.querySelector(".playlist > .body")
                 });
+
+                this.player = new W2GYoutubePlayer(this.socket, "player");
+
+                this.bindEvents(); 
             })
             .catch(error => {
                 console.log(error);   

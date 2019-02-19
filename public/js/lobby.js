@@ -1,6 +1,6 @@
 const ClientCreateRoom = {
 
-    socket: io("/lobby"),
+    socket: io({transports: ["websocket"]}),
     FQDN: "https://watch.20iq.club/",
     DEV: "/",
 
@@ -23,6 +23,8 @@ const ClientCreateRoom = {
     },
 
     init() {
+        //Apparently socket.io cant be instanciated with namespace + options..
+        this.socket = io("/lobby");
         this.bindEvents();
     }
 

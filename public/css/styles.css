@@ -347,6 +347,8 @@ animation: 5s sbx_glow cubic-bezier(.86,0,.07,1) infinite alternate
 }
 
 .chat > .messages > .message {
+  display: flex;
+  align-items: center;
   background: #444;
   color: #ccc;
   min-height: 50px;
@@ -354,7 +356,8 @@ animation: 5s sbx_glow cubic-bezier(.86,0,.07,1) infinite alternate
 }
 
 .chat > .messages > .message img {
-    height: 32px;
+    height: auto;
+    margin: 0 5px;
 }
 
 .chat > .messages > .message.system {
@@ -384,6 +387,8 @@ animation: 5s sbx_glow cubic-bezier(.86,0,.07,1) infinite alternate
   float: left;
   padding: 10px;
   padding-left: 0;
+  display: flex;
+  align-items: center;
 }
 
 .chat > .chat-box {
@@ -521,7 +526,7 @@ animation: 5s sbx_glow cubic-bezier(.86,0,.07,1) infinite alternate
   width: 100%;
 }
 
-.video > .thumb > .duration {
+.video > .thumb > .length {
   position: absolute;
   bottom: 10px;
   right: 10px;
