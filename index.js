@@ -67,6 +67,32 @@ class UserCollection {
         return this.users.find(user => user.name === name);
     }   
 
+    setProperty(property, username) {
+        this.findByName(username)[property] = true;        
+    }
+
+    removePropertyFromEveryone(property) {
+        this.users = this.users.map(user => {
+            let {[property]: _, ...rest} = user;
+            return rest;
+        });
+    }
+
+    everyoneHas(property) {
+        return this.users.reduce((result, user) => result && user[property], true);
+    }
+
+    waitForEveryone(socket, property, callback) {
+        if (socket.name) {
+            this.setProperty(property, socket.name);
+            console.log(`${socket.name} is ${property}`);
+            if (this.everyoneHas(property)) {
+                callback();
+                this.removePropertyFromEveryone(property);
+            }
+        }
+    }
+
     remove(user) {
         let index = this.users.findIndex(_user => _user.name === user.name);
         this.users.splice(index, 1);
@@ -74,6 +100,10 @@ class UserCollection {
 
     exists(user) {
         return this.users.findIndex(_user => _user.name === user.name) !== -1;
+    }
+
+    isEmpty() {
+        return !this.users.length;
     }
 }
 
@@ -107,10 +137,17 @@ class YoutubeVideo {
     }
 
     clearInterval() {
-        if (this.intervalID) clearInterval(this.intervalID);
+        if (this.intervalID) {
+            clearInterval(this.intervalID);
+            this.intervalID = null;
+        }
     }
 
     play() {
+
+        //Ignore calls when video is already playing.
+        if (this.intervalID) return;
+
         this.intervalID = setInterval(() => {
             if (this.currentPosition + 1 <= this.length) {
                 this.currentPosition++;
@@ -124,6 +161,10 @@ class YoutubeVideo {
 
     pause() {
         this.clearInterval();
+    }
+
+    setPosition(position) {
+        this.currentPosition = position;
     }
 
     buildTimeString(seconds) {
@@ -147,6 +188,10 @@ class Playlist {
         return this.videos;
     }
 
+    getNext() {
+        return this.videos.shift();
+    }
+
     add(video) {
         this.videos.push(video);
     }
@@ -155,6 +200,10 @@ class Playlist {
         this.videos = this.videos.filter(currentVideo => {
             return currentVideo.id !== video.id;
         });
+    }
+
+    isEmpty() {
+        return !this.length;
     }
 
 }
@@ -258,6 +307,7 @@ class WatchTogetherRoom extends EventEmitter {
             this.users.add(user);
         } else {
             this.log(`User ${name} already exists`);    
+            socket.emit("name-already-exists", name);
         }
         
         //Notify everyone of the new person 
@@ -272,14 +322,52 @@ class WatchTogetherRoom extends EventEmitter {
     onPlayerVideoChange(socket, link) {
         this.ytApi.getVideo(link)
             .then(video => {
+                //If we had another video, stop playing it
+                if (this.video) this.video.pause();
+                //Then overwrite reference to new video.
                 this.video = video;
-                this.video.play();
                 this.broadcast("player-video-change", video.getPlain());
                 this.log({label: `Changed video`, data: video});
             })
             .catch(error => {
                 console.log(error);   
             });
+    }
+
+    onPlayerVideoReady(socket, link) {
+        this.users.waitForEveryone(socket, "ready", () => {
+            setTimeout(() => {
+                this.video.play();
+                this.broadcast("player-everyone-ready");
+                this.log(`Everyone is ready. Emitting start`);
+            }, 1000);
+        });
+    }
+
+    onPlayerVideoEnded(socket) {
+        if (!this.playlist.isEmpty()) {
+            console.log(this.playlist);
+            this.users.waitForEveryone(socket, "ended", () => {
+                this.broadcast("player-video-change", this.playlist.getNext().getPlain());
+            });
+        }
+    }
+
+    onPlayerPause(socket, time) {
+        this.video.pause();
+        this.video.setPosition(time);
+        this.broadcast("player-pause", time);
+    }
+
+    onPlayerPlay(socket) {
+        this.video.play();
+        this.broadcast("player-play");
+    }
+
+    onPlayerVideoPositioning(socket, time) {
+        this.broadcast("player-video-positioning", time);
+        this.video.pause();
+        this.video.setPosition(time);
     }
 
     onPlaylistNewVideo(socket, link) {
@@ -299,6 +387,9 @@ class WatchTogetherRoom extends EventEmitter {
             this.users.remove(this.users.findByName(socket.name));
             this.broadcast("users-update", this.users.getPlain());
             this.log(`Disconnected: ${socket.name}`);
+            if (this.users.isEmpty()) {
+                this.emit("w2groom-empty");
+            }
         }
     }
 
@@ -310,6 +401,11 @@ class WatchTogetherRoom extends EventEmitter {
             this.bindSocketEvent(socket, "chat-message", this.onChatMessage);            
             this.bindSocketEvent(socket, "playlist-new-video", this.onPlaylistNewVideo);
             this.bindSocketEvent(socket, "player-video-change", this.onPlayerVideoChange);
+            this.bindSocketEvent(socket, "player-video-ready", this.onPlayerVideoReady);
+            this.bindSocketEvent(socket, "player-video-ended", this.onPlayerVideoEnded);
+            this.bindSocketEvent(socket, "player-pause", this.onPlayerPause);
+            this.bindSocketEvent(socket, "player-play",  this.onPlayerPlay);
+            this.bindSocketEvent(socket, "player-video-positioning", this.onPlayerVideoPositioning);
         });
     }
 }
@@ -429,7 +525,10 @@ class WatchTogether {
 
     roomExists(id) {
         return this.rooms.find(room => room.id === id) !== undefined;
+    }
 
+    removeRoom(room) {
+        this.rooms.splice(this.rooms.findIndex(_room => _room.id === room.id), 1);
     }
 
     bindEvents() {
@@ -437,6 +536,10 @@ class WatchTogether {
 
         this.lobbyManager.on("new-room", room => {
             this.rooms.push(room)
+            /*room.on("w2groom-empty", () => {
+                this.removeRoom(room);
+                console.log(`!! Room [${room.id}] destroyed. !!`);
+            });*/
             console.log(this.rooms);
         });
 
@@ -445,6 +548,8 @@ class WatchTogether {
             socket.on("join-room", id => {
                 if (self.roomExists(id)) {
                     socket.emit("join-success", id);
+                } else {
+                    socket.emit("join-bad-id");
                 }
             });
         });
@@ -469,8 +574,11 @@ app.get('/', function(req, res){
 });
 
 app.get('/room/:id', function(req, res){
-    //id = req.params.id
-    res.sendFile(__dirname + "/views/room.html");
+    if (w2g.roomExists(req.params.id)) {
+        res.sendFile(__dirname + "/views/room.html");
+    } else {
+        res.sendFile(__dirname + "/views/badroomid.html");
+    }
 });
 
 const YTApi = {

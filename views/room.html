@@ -40,12 +40,16 @@
 
         <div class="container main clearfix">
             <div class="player">
+                <div class="overlay">
+                    <div class="lds-eclipse"><div></div></div> 
+                    <div class="label">Syncing... </div>
+                </div>
                 <div id="player">
                     <!-- Youtube player -->
                 </div>
                 <div class="video-controls clearfix">
                     <div class="play">
-                        <button><i class="icon ion-md-play"></i></button>
+                        <button><i class="icon ion-md-pause"></i></button>
                     </div>
                     <div class="volume">
                         <input type="range" min="0" max="100" value="30">
@@ -54,7 +58,7 @@
                         <span class="current">00:00</span> / <span class="length">00:00</span>
                     </div>
                     <div class="slider">
-                        <input type="range" id="slider" min="0" max="200" value="0">
+                        <input type="range" id="slider" min="0" max="1000" value="0">
                     </div>
                 </div>
             </div>
@@ -66,9 +70,7 @@
                 </div>
                 <div class="messages"></div>
                 <div class="chat-box">
-                    <div class="emotes hidden">
-
-                    </div>
+                    <div class="emotes hidden"></div>
                     <div class="show-emotes"><i class="far fa-grin"></i></div>
                     <textarea class="content" name="" id="" cols="30" rows="10" placeholder="Type your message here..."></textarea>
                 </div>

@@ -215,19 +215,36 @@ class EventEmitter {
 		this.listeners = {};
 	}
 
-	on(name, callback) {
-		if (!Array.isArray(this.listeners[name])) {
-			this.listeners[name] = [];
+	on(event, callback) {
+		if (!Array.isArray(this.listeners[event])) {
+			this.listeners[event] = [];
 		}
 
-		this.listeners[name].push(callback);
+		this.listeners[event].push(callback);
 	}
 
-	emit(name, ...args) {
-		if (this.listeners[name] !== undefined) {
-			this.listeners[name].forEach(listener => listener(...args));
+	emit(event, ...args) {
+		if (this.listeners[event] !== undefined) {
+			this.listeners[event].forEach(listener => listener(...args));
 		}
 	}
+
+    removeListener(event, listener) {
+        if (this.listeners[event] !== undefined) {
+            let index = this.listeners[event].indexOf(listener);
+            if (index > -1) {
+                this.listeners[event].splice(index, 1);
+            }
+        }
+    }
+
+    once(event, listener) {
+        let self = this;
+        this.on(event, function temp(args = []) {
+            self.removeListener(event, temp);
+            listener(...args);
+        });
+    }
 
 }
 
@@ -364,13 +381,154 @@ class VideoLinkInput extends EventEmitter {
     }
 }
 
-class W2GYoutubePlayer {
-    constructor(socket, id) {
+class W2GPlayerControls extends EventEmitter {
+    constructor(player, options) {
+        super();
+        this.player           = player;
+        this.container        = options.ctrlContainer;
+        this.slider           = options.slider;
+        this.playBtn          = options.playBtn;
+        this.playIcon         = options.playIcon;
+        this.volumeSlider     = options.volumeSlider;
+        this.timeDisplay      = options.timeDisplay;
+        this.timeMaxDisplay   = options.timeMaxDisplay;
+        this.videoLength      = 0;
+        this.intervalID       = null;
+        this.volumeStorageKey = options.volumeStorageKey;
+
+        this.checkForExistingVolume();
+        this.volumeSlider.value = this.getLocalVolume();
+        this.bindEvents();
+    }
+
+    updateTimer() {
+        if (this.videoLength === 0) return;
+        this.timeDisplay.textContent    = this.buildTimeString(this.player.getTime());
+        this.timeMaxDisplay.textContent = this.buildTimeString(this.videoLength);
+    }
+
+    updateSlider() {
+        if (this.videoLength === 0) return;
+        this.slider.value            = (this.player.getTime() / this.videoLength) * 1000;
+        this.timeDisplay.textContent = this.buildTimeString(this.player.getTime());
+    }
+
+    startUpdate() {
+        this.intervalID = setInterval(() => {
+            this.updateTimer();
+            this.updateSlider();
+        }, 200);
+    }
+
+    pauseUpdate() {
+        if (this.intervalID !== null) {
+            clearInterval(this.intervalID);
+        }
+    }
+
+
+    buildTimeString(seconds) {
+        let hms = [
+            String(parseInt(  seconds / 3600)),
+            String(parseInt(( seconds % 3600)  / 60)),
+            String(parseInt(((seconds % 3600)  % 60) % 60))
+        ]
+        .map(unit => unit.padStart(2, "0"));
+
+        return `${parseInt(hms[0]) ? hms[0]+":" : ""}${hms[1]}:${hms[2]}`;
+    }
+
+    setVideoLength(length) {
+        this.videoLength = length;
+    }
+
+    setIcon(icon) {
+        switch (icon) {
+            case "play":
+                this.playIcon.classList.remove("ion-md-pause");
+                this.playIcon.classList.add("ion-md-play");
+                break;
+
+            case "pause":
+                this.playIcon.classList.remove("ion-md-play");
+                this.playIcon.classList.add("ion-md-pause");
+                break;
+        }
+    }
+
+    getLocalVolume() {
+        return localStorage.getItem(this.volumeStorageKey);
+    }
+
+    setLocalVolume(volume = 30) {
+        localStorage.setItem(this.volumeStorageKey, volume);
+    }
+
+    checkForExistingVolume() {
+        if (!this.getLocalVolume()) {
+            this.setLocalVolume();
+        }
+    }
+
+    bindEvents() {
+
+        document.addEventListener("playerReady", () => {
+
+            this.slider.addEventListener("change", event => {
+                console.log("New slider value: " + this.slider.value);
+                let time = this.videoLength * (this.slider.value / 1000);
+                console.log("Skipped to " + time + "s");
+                this.emit("playercontrols-positioning", time);
+            });
+
+            this.volumeSlider.addEventListener("input", event => {
+                let volume = event.target.value;
+                this.player.setVolume(volume);
+                this.setLocalVolume(volume);
+            });
+
+            this.player.on("player-play",  () => {
+                this.startUpdate();
+                this.setIcon("pause");
+            });
+            
+            this.player.on("player-pause", () => {
+                this.pauseUpdate();
+                this.setIcon("play");
+            });
+
+            this.player.on("player-video-ended", () => {
+                this.pauseUpdate()
+                //20iq fix, todo: find better way
+                this.slider.value = 200;
+            });
+        });
+
+        this.playBtn.addEventListener("click", () => {
+            this.emit( this.player.isPlaying ? "playercontrols-pause" : "playercontrols-play");
+        });
+    }
+};
+
+class W2GYoutubePlayer extends EventEmitter {
+    constructor(socket, options) {
+        super();
         this.socket = socket;
-        this.id     = id;
+        this.id     = options.id;
         this.player = null;
+        this.controls         = new W2GPlayerControls(this, options);
+        this.overlay          = options.overlay; 
+        this.volumeStoragekey = options.volumeStorageKey;
         this.bindEvents();
         this.loadIFrameAPI();
+    }
+
+    showOverlay() {
+        this.overlay.classList.add("active");
+    }
+
+    hideOverlay() {
+        this.overlay.classList.remove("active");
     }
 
     loadIFrameAPI() {
@@ -386,10 +544,30 @@ class W2GYoutubePlayer {
 
     onPlayerReady() {
         console.log("onPlayerReady Todo");
+        document.dispatchEvent(new CustomEvent("playerReady"), {});
     }
 
-    onPlayerStateChange() {
-        console.log("onPlayerStateChange Todo");
+    onPlayerStateChange(event) {
+        if (event.data === 0) {
+            this.socket.emit("player-video-ended");
+            this.emit("player-video-ended");
+        }
+
+        if (event.data === 1) {
+            this.emit("player-playing");
+        }
+
+        if (event.data === 2) {
+            this.emit("player-paused");
+        }
+
+        if (event.data === 3) {
+            this.emit("player-buffering");
+        }
+
+        if (event.data === 5) {
+            this.emit("player-cued");
+        }
     }
 
     createPlayer() {
@@ -398,13 +576,15 @@ class W2GYoutubePlayer {
             width: '640',
             videoId: '',
             playerVars: {
+                rel: 0,
+                showinfo: 0,
                 autoplay: 0,
                 controls: 0,
                 fs      : 1
             },
             events: {
-                'onReady': this.onPlayerReady,
-                'onStateChange': this.onPlayerStateChange
+                'onReady': this.onPlayerReady.bind(this),
+                'onStateChange': this.onPlayerStateChange.bind(this)
             }
         });
         console.info("W2GYoutubePlayer ready.");
@@ -420,14 +600,118 @@ class W2GYoutubePlayer {
         this.player.loadVideoById(id);
     }
 
+    play() {
+        console.log("Playing video");
+        this.player.playVideo();
+        this.emit("player-play");
+        this.isPlaying = true;
+    }
+    
+    pause() {
+        console.log("Pausing video");
+        this.player.pauseVideo();
+        this.emit("player-pause");
+        this.isPlaying = false;
+    }
+
+    getTime() {
+        return this.player.getCurrentTime();
+    }
+
+    setVolume(volume) {
+        this.player.setVolume(volume);
+    }
+
+
+    setPosition(seconds) {
+        this.player.seekTo(seconds, true);
+        this.emit("player-positioned");
+    }
+
     emitVideoChange(link) {
         this.socket.emit("player-video-change", link);
         console.log("Emitting player-video-change");
     }
 
     bindEvents() {
+        //Avoid stupid global function enforcement from youtube iframe api by using custom events.
         document.addEventListener('onYouTubeIframeAPIReady', () => this.createPlayer(), false);
-        this.socket.on("player-video-change", video => this.loadVideo(video.id));
+
+        /*
+         * Once someone changes video, add a "once" event listener
+         * to the emitter, so that when video is buffered and starts playing
+         * it is paused. Then send 'player-video-ready' event, signaling that
+         * this client is ready for play.
+         */
+        this.socket.on("player-video-change", video => {
+            this.once("player-playing", () => {
+                this.pause();
+                this.setVolume(this.controls.getLocalVolume());
+                this.socket.emit("player-video-ready");
+                console.log("Emitting player-video-ready");
+            });
+
+            this.showOverlay();
+            this.controls.setVideoLength(video.length);
+            this.setVolume(0);
+            this.loadVideo(video.id)
+        });
+
+        /*
+         * Once everyone is ready, server will send 'player-everyone-ready',
+         * then just start playing the video.
+         */
+        this.socket.on("player-everyone-ready", () => {
+            this.hideOverlay();
+            console.log("Everyone is ready.");
+            this.play();
+        });
+
+        this.socket.on("player-pause", time => {
+            this.pause();
+            this.setPosition(time);
+        });
+
+        this.socket.on("player-play", () => this.play());
+
+        this.socket.on("player-video-positioning", time => {
+            /*
+             * If the video is playing and someone changes position:
+             * Force sync for the next time video starts
+             * playing again (after call to setPosition below if statement)
+             */
+            if (this.isPlaying) {
+                this.once("player-playing", () => {
+                    this.pause();
+                    this.setVolume(this.controls.getLocalVolume());
+                    this.socket.emit("player-video-ready");
+                    console.log("Emitting player-video-ready");
+                });
+            } else {
+                /*
+                 * Otherwise, if video is paused:
+                 * Once its done setting new position,
+                 * just hide overlay and do nothing more.
+                 */
+                this.once("player-positioned", () => this.hideOverlay());
+            }
+
+            this.showOverlay();
+            this.setVolume(0);
+            this.setPosition(time);
+        });
+
+        this.controls.on("playercontrols-pause", () => {
+            this.socket.emit("player-pause", this.getTime());
+        });
+
+        this.controls.on("playercontrols-play", () => {
+            this.socket.emit("player-play");
+        });
+
+        this.controls.on("playercontrols-positioning", time => {
+            this.socket.emit("player-video-positioning", time);
+        });
     }
 }
 
@@ -448,7 +732,7 @@ const clientRoom = {
                 console.log(`Connected to room ${id}`);
                 resolve();
             });
-            this.socket.on("join-bad-id", () => reject("Lobby does not exist"));
+            this.socket.on("join-bad-id", () => reject("join-bad-id"));
 
         });
     }, 
@@ -466,6 +750,9 @@ const clientRoom = {
     bindEvents() {
         console.log("Emitting user-new with name " + this.userDisplay.username);
         this.socket.emit("user-new", this.userDisplay.username);
+        this.socket.on("name-already-exists", () => {
+            alert("Name already exists. (Maybe you have multiple tabs opened?)");
+        });
 
         this.socket.on("disconnect", () => console.log("Disconnected..."));
         this.socket.on("reconnect", () => {
@@ -508,12 +795,27 @@ const clientRoom = {
                     list: document.querySelector(".playlist > .body")
                 });
 
-                this.player = new W2GYoutubePlayer(this.socket, "player");
+                this.player = new W2GYoutubePlayer(this.socket, {
+                    id     : "player",
+                    overlay: document.querySelector(".player .overlay"),
+                    ctrlContainer: document.querySelector(".video-controls"),
+                    slider      : document.querySelector("#slider"),
+                    playBtn     : document.querySelector(".play button"),
+                    playIcon    : document.querySelector(".play button i"),
+                    volumeSlider: document.querySelector(".volume input"),
+                    timeDisplay : document.querySelector(".time > .current"),
+                    timeMaxDisplay     : document.querySelector(".time > .length"),
+                    volumeStorageKey : "watch20iq_playerVolume"
+                });
 
                 this.bindEvents(); 
             })
             .catch(error => {
                 console.log(error);   
+                if (error === "join-bad-id") {
+                    alert("The room you tried to join does not exist.");
+                    window.location.href = "http://watch.20iq.club";
+                }
             });
 
     }
