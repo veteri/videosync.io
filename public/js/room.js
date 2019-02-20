@@ -200,6 +200,7 @@ class Chat {
                 new Audio("/audio/chat_noti.mp3").play();
             }
             this.addMessage(this.wrapEmotes(message));
+            this.scrollDown();
         });
 
         this.socket.on("chat-update", messages => {
