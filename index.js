@@ -312,6 +312,9 @@ class WatchTogetherRoom extends EventEmitter {
             escapeHtml(msg.content)
         );
 
+        //Set author chat color
+        message.color = msg.color;
+
         this.chat.addMessage(message);
         this.broadcast("chat-message", message);
         this.log(`${message.author}: ${message.content}`);

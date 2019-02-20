@@ -53,6 +53,7 @@ class Chat {
 
         this.socket     = socket;
         this.username   = options.username;
+        this.color      = `color: ${this.getRandomColorString()}`;
         this.container  = options.container;
         this.chatBox    = options.chatBox;
         this.emoteBox   = options.emoteBox;
@@ -66,12 +67,17 @@ class Chat {
 
         this.messageTemplate = new HTMLTemplate(
             `<div class="message clearfix {{author}}">
-                <div class="author">{{author}}:</div>
+                <div class="author" style="{{color}}">{{author}}:</div>
                 <div class="content">{{content}}</div>
             </div>`
         );
 
         this.bindEvents();
+    }
+
+    getRandomColorString() {
+        const _0to255 = () => Math.round(Math.random() * (255 - 50)) + 50;
+        return `rgb(${_0to255()}, ${_0to255()}, ${_0to255()})`;
     }
 
     getMessage() {
@@ -186,7 +192,8 @@ class Chat {
                 event.preventDefault();
 
                 this.socket.emit("chat-message", {
-                    author: this.username,
+                    author : this.username,
+                    color  : this.color,
                     content: this.chatBox.value
                 });
 
@@ -196,6 +203,7 @@ class Chat {
         });
 
         this.socket.on("chat-message", message => {
+            console.log(message);
             if (document.hidden) {
                 new Audio("/audio/chat_noti.mp3").play();
             }
