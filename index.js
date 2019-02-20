@@ -10,6 +10,9 @@ let io   = require("socket.io")(http, {
     pingTimeout: 2000,
 });
 
+let pauseable = require("pauseable");
+
+
 
 const escapeHtml = function (text) {
     let map = {
@@ -144,6 +147,26 @@ class YoutubeVideo {
     }
 
     play() {
+        if (!this.timer) {
+            this.timer = pauseable.setInterval(() => {
+                if (this.currentPosition + 1 <= this.length) {
+                    this.currentPosition++;
+                    console.log(` Position: ${this.currentPosition}, String: ${this.buildTimeString(this.currentPosition)}`);
+                } else {
+                    this.ended = true;
+                    this.timer = null;
+                }
+            }, 1000);
+        } else if (this.timer.isPaused()) {
+            this.timer.resume();
+        }
+    }
+
+    pause() {
+        this.timer.pause();
+    }
+
+    _play() {
 
         //Ignore calls when video is already playing.
         if (this.intervalID) return;
@@ -159,7 +182,7 @@ class YoutubeVideo {
         }, 1000);
     }
 
-    pause() {
+    _pause() {
         this.clearInterval();
     }
 

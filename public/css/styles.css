@@ -100,10 +100,14 @@ header {
   background: #111;
 }
 
-header > .logo {
-  float: left;
-  padding: 10px;
-   height: 80px;
+.logo {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 80px;
+    z-index: 999;
+    top: 20px;
+    left: 20px;
 }
 
 header > .search {
@@ -160,7 +164,7 @@ header > .search > .add-playlist {
     background-size: cover;
     background-position: center;
     width: 100vw;
-    height: calc(100vh - 80px);
+    height: 100vh;
 }
 
 .hero .inner {
