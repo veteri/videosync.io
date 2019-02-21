@@ -129,7 +129,8 @@ class YoutubeVideo {
             title     : this.title,
             thumb     : this.thumb,
             length    : this.length,
-            timeString: this.timeString
+            timeString: this.timeString,
+            position  : this.currentPosition
         } 
     }
 
@@ -339,6 +340,7 @@ class WatchTogetherRoom extends EventEmitter {
         socket.emit("chat-update", this.chat.getLatest());
         socket.emit("playlist-update", this.playlist.getVideos());
         socket.emit("history-update");
+
     }
 
     onPlayerVideoChange(socket, link) {
@@ -389,6 +391,13 @@ class WatchTogetherRoom extends EventEmitter {
         }
     }
 
+    onPlayerReady(socket) {
+        if (this.video) {
+            this.log(`Sending current video to ${socket.name}`);
+            socket.emit("current-video", this.video.getPlain());
+        }
+    }
+
     onPlayerVideoPositioning(socket, time) {
         this.broadcast("player-video-positioning", time);
         this.video.pause();
@@ -405,6 +414,11 @@ class WatchTogetherRoom extends EventEmitter {
             .catch(error => {
                 this.log(error);   
             });
+    }
+
+    onRequestPause(socket) {
+        this.video.pause();
+        this.broadcast("player-pause", this.video.currentPosition);
     }
 
     onDisconnect(socket, name) {
@@ -431,6 +445,9 @@ class WatchTogetherRoom extends EventEmitter {
             this.bindSocketEvent(socket, "player-pause", this.onPlayerPause);
             this.bindSocketEvent(socket, "player-play",  this.onPlayerPlay);
             this.bindSocketEvent(socket, "player-video-positioning", this.onPlayerVideoPositioning);
+            this.bindSocketEvent(socket, "player-ready", this.onPlayerReady);
+            this.bindSocketEvent(socket, "request-pause", this.onRequestPause);
+
         });
     }
 }

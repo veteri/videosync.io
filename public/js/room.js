@@ -621,6 +621,7 @@ class W2GYoutubePlayer extends EventEmitter {
     onPlayerReady() {
         console.log("onPlayerReady Todo");
         document.dispatchEvent(new CustomEvent("playerReady"), {});
+        this.socket.emit("player-ready");
     }
 
     onPlayerStateChange(event) {
@@ -712,6 +713,16 @@ class W2GYoutubePlayer extends EventEmitter {
     bindEvents() {
         //Avoid stupid global function enforcement from youtube iframe api by using custom events.
         document.addEventListener('onYouTubeIframeAPIReady', () => this.createPlayer(), false);
+
+        document.addEventListener("playerReady", () => {
+            this.socket.on("current-video", video => {
+                console.log("Video already running");
+                this.once("player-playing", () => {
+                    this.socket.emit("request-pause");
+                });
+                this.loadVideo(video.id);
+            });
+        });
 
         /*
          * Once someone changes video, add a "once" event listener
