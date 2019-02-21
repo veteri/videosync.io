@@ -117,10 +117,10 @@ class YoutubeVideo {
         this.length     = length;
         this.timeString = this.buildTimeString(length);
         this.thumb      = thumb;
-
-        this.intervalID      = null;
-        this.currentPosition = null;
+        this.timer      = null;
+        this.currentPosition = 0;
         this.ended           = false;
+        this.SERVER_TIMER_PERIOD_MS = 100;
     }   
 
     getPlain() {
@@ -136,34 +136,30 @@ class YoutubeVideo {
     reset() {
         this.currentPosition = 0;
         this.ended = false;
-        this.clearInterval();
-    }
-
-    clearInterval() {
-        if (this.intervalID) {
-            clearInterval(this.intervalID);
-            this.intervalID = null;
-        }
     }
 
     play() {
         if (!this.timer) {
             this.timer = pauseable.setInterval(() => {
-                if (this.currentPosition + 1 <= this.length) {
-                    this.currentPosition++;
+                let scale = this.SERVER_TIMER_PERIOD_MS / 1000;
+                if ((this.currentPosition += scale) < this.length) {
                     console.log(` Position: ${this.currentPosition}, String: ${this.buildTimeString(this.currentPosition)}`);
                 } else {
                     this.ended = true;
-                    this.timer = null;
+                    this.timer.pause();
                 }
-            }, 1000);
+            }, this.SERVER_TIMER_PERIOD_MS);
         } else if (this.timer.isPaused()) {
+            if (this.ended) {
+                this.reset();
+            }
+
             this.timer.resume();
         }
     }
 
     pause() {
-        this.timer.pause();
+        if (this.timer) this.timer.pause();
     }
 
     _play() {
@@ -380,6 +376,7 @@ class WatchTogetherRoom extends EventEmitter {
     }
 
     onPlayerPause(socket, time) {
+        this.log(`${socket.name} clicked pause.`);
         this.video.pause();
         this.video.setPosition(time);
         this.broadcast("player-pause", time);

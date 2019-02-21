@@ -751,6 +751,8 @@ class W2GYoutubePlayer extends EventEmitter {
 
         this.socket.on("player-play", () => this.play());
 
+        this.on("player-video-ended", () => this.pause());
+
         this.socket.on("player-video-positioning", time => {
             /*
              * If the video is playing and someone changes position:
