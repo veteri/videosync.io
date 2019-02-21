@@ -60,7 +60,7 @@
 }
 
 body {
-  background-color: #222;
+  background-color: #19171c;
   margin: 0;
 }
 
@@ -100,7 +100,7 @@ header {
   background: #111;
 }
 
-.logo {
+body > .logo {
     position: absolute;
     top: 0;
     left: 0;
@@ -108,6 +108,12 @@ header {
     z-index: 999;
     top: 20px;
     left: 20px;
+}
+
+header > .logo {
+    float: left;
+    height: 80px;
+    padding: 10px;
 }
 
 header > .search {
@@ -130,6 +136,8 @@ header > .search > .yt-link {
   border: none;
   border-top-left-radius: 5px;
   border-bottom-left-radius: 5px;
+  color: #fff;
+  background: #333;
 }
 
 header > .search > .yt-link.error {
@@ -143,7 +151,7 @@ header > .search > .add-playlist {
   display: block;
   padding: 0 30px;
   margin-top: 12px;
-  height: 57px;
+  height: 56px;
   border: none;
   font-size: 1.625rem;
   color: #ebebeb;
@@ -432,16 +440,16 @@ header > .search > .add-playlist {
 }
 
 .chat .header {
-    position: relative;
+  position: relative;
   padding: 20px 0;
   text-align: center;
   color: #ebebeb;
   border-top-left-radius: 5px;
   border-top-right-radius: 5px;
   font-size: 1.625rem;
-
-overflow: hidden;
-animation: 5s sbx_glow cubic-bezier(.86,0,.07,1) infinite alternate
+  overflow: hidden;
+  animation: 5s sbx_glow cubic-bezier(.86,0,.07,1) infinite alternate;
+  background: linear-gradient(to bottom, #45484d 0%,#000000 100%);
 }
 
 .chat .header img {
@@ -479,16 +487,16 @@ animation: 5s sbx_glow cubic-bezier(.86,0,.07,1) infinite alternate
 }
 
 .chat > .messages {
-  border: 1px solid #444;
   border-top: none;
   height: calc(720px - 100px - 72px);
+  background: #0f0e11;
+  font-family: arial;
   overflow-y: scroll;
 }
 
 .chat > .messages > .message {
   display: flex;
   align-items: center;
-  background: #444;
   color: #ccc;
   min-height: 50px;
   line-height: 30px;
@@ -504,15 +512,15 @@ animation: 5s sbx_glow cubic-bezier(.86,0,.07,1) infinite alternate
 }
 
 .chat > .messages > .message.system > .author {
-  font-weight: bold;
+  font-weight: 600;
 }
 
 .chat > .messages > .message.system > .content {
-  font-weight: bold;
+  font-weight: 400;
 }
 
 .chat > .messages > .message:nth-child(even) {
-  background: #333;
+  background: #181818;
 }
 
 .chat > .messages > .message > .author {
@@ -533,6 +541,7 @@ animation: 5s sbx_glow cubic-bezier(.86,0,.07,1) infinite alternate
 .chat > .chat-box {
   height: 100px;
   position: relative;
+  border-top: 1px solid rgba(255,255,255,0.2);
 }
 
 .chat > .chat-box > .show-emotes {
@@ -542,6 +551,7 @@ animation: 5s sbx_glow cubic-bezier(.86,0,.07,1) infinite alternate
   font-size: 2rem;
   cursor: pointer;
   opacity: 0.4;
+  color: #fff;
 }
 
 .chat > .chat-box > .show-emotes:hover {
@@ -576,7 +586,8 @@ animation: 5s sbx_glow cubic-bezier(.86,0,.07,1) infinite alternate
   padding: 10px;
   padding-right: 30px;
   font-size: 1.2rem;
-  background: #f4f4f4;
+  background: #0f0e11;
+  color: #fff;
 }
 
 .online-users {
@@ -632,7 +643,7 @@ animation: 5s sbx_glow cubic-bezier(.86,0,.07,1) infinite alternate
 .playlist > .body,
 .history > .body {
   padding: 20px 0;
-  background: #333;
+  background: #0f0e11;
   overflow-y: scroll;
   height: 400px;
 }
