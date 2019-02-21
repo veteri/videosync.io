@@ -390,42 +390,113 @@ class VideoLinkInput extends EventEmitter {
     }
 }
 
+class SliderControl extends EventEmitter {
+    constructor(percent, options) {
+        super();
+        this.percent   = percent;
+        this.container = options.container;
+        this.fillBar   = options.fillBar;
+        this.handle    = options.handle;
+        this.mouse     = {
+            x     : 0,
+            y     : 0,
+            isDown: false
+        };
+
+        this.setPercent(percent);
+        this.bindEvents();
+    }
+
+    setPercent(percent) {
+        console.log(`Setting percent ${percent}`);
+        if (percent < 0)   percent = 0;
+        if (percent > 100) percent = 100;
+        this.fillBar.style.width = `${percent}%`;
+        this.handle.style.left   = `${percent}%`;
+        this.emit("change", percent);
+    }
+
+    setPercentFromUserEvent(event) {
+        let percent = this.getXPercent(event);
+        this.setPercent(percent);
+        this.emit("change-by-user", percent);
+    }
+
+    getXPercent(mouseEvent) {
+        let boundingRect = this.container.getBoundingClientRect();
+        return ((mouseEvent.clientX - boundingRect.left) / boundingRect.width) * 100;
+    }
+
+    bindEvents() {
+        this.container.addEventListener("click", event => {
+            this.setPercentFromUserEvent(event);
+        });
+
+        document.addEventListener("mousedown", event => {
+            this.mouse.isDown = true;
+            if (this.container.contains(event.target)) {
+                this.setPercentFromUserEvent(event);
+            }
+        });
+
+        document.addEventListener("mouseup", event => {
+            this.mouse.isDown = false;
+        });
+
+        this.container.addEventListener("mousemove", event => {
+            event.preventDefault();
+            if (this.mouse.isDown) {
+                this.setPercentFromUserEvent(event);
+            }
+        });
+    }
+}
+
 class W2GPlayerControls extends EventEmitter {
     constructor(player, options) {
         super();
         this.player           = player;
         this.container        = options.ctrlContainer;
-        this.slider           = options.slider;
         this.playBtn          = options.playBtn;
         this.playIcon         = options.playIcon;
-        this.volumeSlider     = options.volumeSlider;
         this.timeDisplay      = options.timeDisplay;
         this.timeMaxDisplay   = options.timeMaxDisplay;
+
+        this.volumeSlider    = new SliderControl(this.getLocalVolume(), {
+            container: document.querySelector(".volume.slider-control"),
+            fillBar: document.querySelector(".volume.slider-control .fill"),
+            handle: document.querySelector(".volume.slider-control .handle")
+        });
+        
+        this.progress           = new SliderControl(0, {
+            container: document.querySelector(".progress.slider-control"),
+            fillBar  : document.querySelector(".progress.slider-control .fill"),
+            handle   : document.querySelector(".progress.slider-control .handle")
+        });
+
         this.videoLength      = 0;
         this.intervalID       = null;
         this.volumeStorageKey = options.volumeStorageKey;
 
         this.checkForExistingVolume();
-        this.volumeSlider.value = this.getLocalVolume();
         this.bindEvents();
     }
 
-    updateTimer() {
+    updateTime() {
         if (this.videoLength === 0) return;
         this.timeDisplay.textContent    = this.buildTimeString(this.player.getTime());
         this.timeMaxDisplay.textContent = this.buildTimeString(this.videoLength);
     }
 
-    updateSlider() {
+    updateProgress() {
         if (this.videoLength === 0) return;
-        this.slider.value            = (this.player.getTime() / this.videoLength) * 1000;
-        this.timeDisplay.textContent = this.buildTimeString(this.player.getTime());
+        this.progress.setPercent((this.player.getTime() / this.videoLength) * 100);
     }
 
     startUpdate() {
         this.intervalID = setInterval(() => {
-            this.updateTimer();
-            this.updateSlider();
+            this.updateTime();
+            this.updateProgress();
         }, 200);
     }
 
@@ -480,20 +551,16 @@ class W2GPlayerControls extends EventEmitter {
     }
 
     bindEvents() {
-
         document.addEventListener("playerReady", () => {
 
-            this.slider.addEventListener("change", event => {
-                console.log("New slider value: " + this.slider.value);
-                let time = this.videoLength * (this.slider.value / 1000);
-                console.log("Skipped to " + time + "s");
-                this.emit("playercontrols-positioning", time);
+            this.volumeSlider.on("change-by-user", percent => {
+                this.player.setVolume(percent);
+                this.setLocalVolume(percent);
             });
 
-            this.volumeSlider.addEventListener("input", event => {
-                let volume = event.target.value;
-                this.player.setVolume(volume);
-                this.setLocalVolume(volume);
+            this.progress.on("change-by-user", percent => {
+                console.log("progress changed by user");
+                //this.emit("playercontrols-positioning", this.videoLength * percent);
             });
 
             this.player.on("player-play",  () => {
@@ -507,15 +574,15 @@ class W2GPlayerControls extends EventEmitter {
             });
 
             this.player.on("player-video-ended", () => {
-                this.pauseUpdate()
-                //20iq fix, todo: find better way
-                this.slider.value = 200;
+                this.pauseUpdate();
+                this.progress.setPercent(100);
+            });
+
+            this.playBtn.addEventListener("click", () => {
+                this.emit( this.player.isPlaying ? "playercontrols-pause" : "playercontrols-play");
             });
         });
 
-        this.playBtn.addEventListener("click", () => {
-            this.emit( this.player.isPlaying ? "playercontrols-pause" : "playercontrols-play");
-        });
     }
 };
 
@@ -661,6 +728,7 @@ class W2GYoutubePlayer extends EventEmitter {
             });
 
             this.showOverlay();
+            console.log("player-video-change: showOverlay");
             this.controls.setVideoLength(video.length);
             this.setVolume(0);
             this.loadVideo(video.id)
@@ -706,6 +774,7 @@ class W2GYoutubePlayer extends EventEmitter {
             }
 
             this.showOverlay();
+            console.log("player-video-positioning, showOverlay");
             this.setVolume(0);
             this.setPosition(time);
         });

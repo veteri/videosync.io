@@ -386,8 +386,10 @@ class WatchTogetherRoom extends EventEmitter {
     }
 
     onPlayerPlay(socket) {
-        this.video.play();
-        this.broadcast("player-play");
+        if (this.video) {
+            this.video.play();
+            this.broadcast("player-play");
+        }
     }
 
     onPlayerVideoPositioning(socket, time) {
