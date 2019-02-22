@@ -16,6 +16,8 @@
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
         <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.4.0/css/iziToast.min.css">
+         <link rel="stylesheet" href="https://unpkg.com/simplebar@latest/dist/simplebar.css" />
+
         <link rel="stylesheet" href="/css/grid.css">
         <link rel="stylesheet" href="/css/styles.css">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -73,7 +75,15 @@
                     <div class="overlay"></div>
                     <span class="title"><i class="far fa-comment-alt"></i> Chat</span>
                 </div>
-                <div class="messages"></div>
+                <div class="scroll-wrapper" data-simplebar data-simplebar-auto-hide="false">
+                    <div class="messages">
+                        <!--<div class="message {{author}}">
+                            <span class="timestamp">{{timestamp}}</span>
+                            <span class="author" style="{{color}}">{{author}}<span class="colon">:</span></span>
+                            {{content}}
+                        </div>-->
+                    </div>
+                </div>
                 <div class="chat-box">
                     <div class="emotes hidden"></div>
                     <div class="show-emotes"><i class="far fa-grin"></i></div>
@@ -131,5 +141,6 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
     <script src="/socket.io/socket.io.js"></script>
      <script src="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.4.0/js/iziToast.min.js" type="text/javascript"></script>
+    <script src="https://unpkg.com/simplebar@latest/dist/simplebar.js"></script>      
     <script src="/js/room.js"></script>
 </html>

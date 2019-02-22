@@ -487,57 +487,69 @@ header > .search > .add-playlist {
     z-index: 1;
 }
 
-.chat > .messages {
-  border-top: none;
-  height: calc(720px - 100px - 72px);
-  background: #0f0e11;
-  font-family: arial;
-  overflow-y: scroll;
+.chat .scroll-wrapper {
+    width: 100%;
+    height: calc(720px - 100px - 72px);
 }
 
-.chat > .messages > .message {
-  display: flex;
-  align-items: center;
+.chat .simplebar-scrollbar {
+    width: 9px;
+}
+
+.chat .simplebar-scrollbar:before {
+    box-shadow: 0 0 2px #fff;
+}
+
+.chat .messages {
+  border-top: none;
+  /*height: calc(720px - 100px - 72px);*/
+  background: #0f0e11;
+  font-family: arial;
+  overflow: hidden;
+}
+
+.chat  .messages  .message {
+  padding: 10px;
   color: #ccc;
   min-height: 50px;
   line-height: 30px;
 }
 
-.chat > .messages > .message img {
-    height: auto;
-    margin: 0 5px;
-    vertical-align: middle;
+.chat  .messages  .message.system {
+    color: #FCA311;
+    background: #14213D !important;
+    font-weight: bold;
 }
 
-.chat > .messages > .message.system > .author {
-  font-weight: 600;
-  color: rgb(117, 227, 97);
+.chat .messages .message .timestamp {
+    color: #888;
+    font-weight: normal;
 }
 
-.chat > .messages > .message.system > .author::before {
+.chat .messages .message .author {
+    padding: 0 10px 0 0;
+    font-weight: 600;
+}
+
+.chat  .messages  .message.system  .author::before {
     content: "\f544  ";
     font-family: "Font Awesome 5 Free";
     font-size: 1.6rem;
 }
 
-.chat > .messages > .message.system > .content {
-  font-weight: 400;
+.chat .messages .message .colon {
+    color: #fff;
+    font-weight: normal;
 }
 
-.chat > .messages > .message:nth-child(even) {
-  background: #1f1925;
+.chat  .messages  .message img {
+    height: auto;
+    margin: 0 5px;
+    vertical-align: middle;
 }
 
-.chat > .messages > .message > .author {
-  float: left;
-  padding: 10px;
-  font-weight: bold;
-}
-
-.chat > .messages > .message > .content {
-  float: left;
-  padding: 10px;
-  padding-left: 0;
+.chat  .messages  .message:nth-child(even) {
+  background: #1b1521; /*#1f1925*;*/
 }
 
 .chat > .chat-box {
