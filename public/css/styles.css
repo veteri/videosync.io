@@ -433,10 +433,12 @@ header > .search > .add-playlist {
 .chat {
   float: left;
   margin-left: 10px;
-  border-bottom-left-radius: 5px;
-  border-bottom-right-radius: 5px;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
   width: calc(30% - 10px);
   height: 720px;
+  overflow: hidden;
+  box-shadow: 0 0 2px #000;
 }
 
 .chat .header {
@@ -448,8 +450,7 @@ header > .search > .add-playlist {
   border-top-right-radius: 5px;
   font-size: 1.625rem;
   overflow: hidden;
-  animation: 5s sbx_glow cubic-bezier(.86,0,.07,1) infinite alternate;
-  background: linear-gradient(to bottom, #45484d 0%,#000000 100%);
+  background: linear-gradient(to bottom, #434343 0%,#000000 100%);
 }
 
 .chat .header img {
@@ -505,14 +506,18 @@ header > .search > .add-playlist {
 .chat > .messages > .message img {
     height: auto;
     margin: 0 5px;
-}
-
-.chat > .messages > .message.system {
-  border-left: 5px solid yellow;
+    vertical-align: middle;
 }
 
 .chat > .messages > .message.system > .author {
   font-weight: 600;
+  color: rgb(117, 227, 97);
+}
+
+.chat > .messages > .message.system > .author::before {
+    content: "\f544  ";
+    font-family: "Font Awesome 5 Free";
+    font-size: 1.6rem;
 }
 
 .chat > .messages > .message.system > .content {
@@ -520,22 +525,19 @@ header > .search > .add-playlist {
 }
 
 .chat > .messages > .message:nth-child(even) {
-  background: #181818;
+  background: #1f1925;
 }
 
 .chat > .messages > .message > .author {
   float: left;
   padding: 10px;
   font-weight: bold;
-  min-width: 10px;
 }
 
 .chat > .messages > .message > .content {
   float: left;
   padding: 10px;
   padding-left: 0;
-  display: flex;
-  align-items: center;
 }
 
 .chat > .chat-box {
@@ -574,6 +576,10 @@ header > .search > .add-playlist {
   overflow-y: scroll;
 }
 
+.chat > .chat-box > .emotes img {
+    margin: 0 5px;
+}
+
 .chat > .chat-box > .emotes img:hover {
   cursor: pointer;
 }
@@ -588,6 +594,7 @@ header > .search > .add-playlist {
   font-size: 1.2rem;
   background: #0f0e11;
   color: #fff;
+  resize: none;
 }
 
 .online-users {

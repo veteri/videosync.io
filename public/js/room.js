@@ -62,7 +62,7 @@ class Chat {
         this.emotePaths = {};
 
         this.emoteTemplate   = new HTMLTemplate(
-            `<img title="{{key}}" src="{{path}}" width="50">`
+            `<img title="{{key}}" src="{{path}}" width="40">`
         );
 
         this.messageTemplate = new HTMLTemplate(
