@@ -489,6 +489,7 @@ class W2GPlayerControls extends EventEmitter {
         this.volumeStorageKey = options.volumeStorageKey;
 
         this.checkForExistingVolume();
+        this.volumeSlider.setPercent(this.getLocalVolume());
         this.bindEvents();
     }
 
@@ -508,6 +509,13 @@ class W2GPlayerControls extends EventEmitter {
             this.updateTime();
             this.updateProgress();
         }, 200);
+    }
+
+    initialSync(video) {
+        console.log("Initial sync of controls with video.");
+        this.videoLength = video.length;
+        this.updateTime();
+        this.updateProgress();
     }
 
     pauseUpdate() {
@@ -563,6 +571,7 @@ class W2GPlayerControls extends EventEmitter {
     bindEvents() {
         document.addEventListener("playerReady", () => {
 
+            console.log("Playercontrol events bound.");
             this.volumeSlider.on("change-by-user", percent => {
                 this.player.setVolume(percent);
                 this.setLocalVolume(percent);
@@ -709,6 +718,11 @@ class W2GYoutubePlayer extends EventEmitter {
         this.player.setVolume(volume);
     }
 
+    restoreLocalVolume() {
+        let volume = this.controls.getLocalVolume();
+        this.player.setVolume(volume);
+        this.controls.volumeSlider.setPercent(volume);
+    }
 
     setPosition(seconds) {
         this.player.seekTo(seconds, true);
@@ -726,10 +740,17 @@ class W2GYoutubePlayer extends EventEmitter {
 
         document.addEventListener("playerReady", () => {
             this.socket.on("current-video", video => {
-                console.log("Video already running");
+                console.log("Fetched currently running video.");
                 this.once("player-playing", () => {
+                    this.restoreLocalVolume();
                     this.socket.emit("request-pause");
                 });
+                
+                this.once("player-paused", () => {
+                    this.controls.initialSync(video);
+                });
+
+                this.setVolume(0);
                 this.loadVideo(video.id);
             });
         });
@@ -743,14 +764,14 @@ class W2GYoutubePlayer extends EventEmitter {
         this.socket.on("player-video-change", video => {
             this.once("player-playing", () => {
                 this.pause();
-                this.setVolume(this.controls.getLocalVolume());
+                this.restoreLocalVolume();
                 this.socket.emit("player-video-ready");
                 console.log("Emitting player-video-ready");
             });
 
             this.showOverlay();
             console.log("player-video-change: showOverlay");
-            this.controls.setVideoLength(video.length);
+            this.controls.initialSync(video);
             this.setVolume(0);
             this.loadVideo(video.id)
         });
