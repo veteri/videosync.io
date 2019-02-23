@@ -6,6 +6,12 @@ class HTMLTemplate {
     render(data) {
         return this.template.replace(/{{(.*?)}}/gi, (match, key) => data[key]);
     }
+
+    renderElement(data) {
+        const wrapper = document.createElement("div");
+        wrapper.innerHTML = this.render(data);
+        return wrapper.firstElementChild;
+    }
 }
 
 class UserDisplay {
@@ -55,9 +61,14 @@ class Chat {
         this.username   = options.username;
         this.color      = `color: ${this.getRandomColorString()}`;
         this.container  = options.container;
-        this.scroll     = new SimpleBar(options.scrollWrapper, {
+        this.messageScroll     = new SimpleBar(options.scrollWrapper, {
             autoHide: false 
         });
+
+        this.emoteScroll     = new SimpleBar(options.emoteScrollWrapper, {
+            autoHide: false 
+        });
+
         this.chatBox    = options.chatBox;
         this.emoteBox   = options.emoteBox;
         this.showEmotes = options.showEmotes;
@@ -86,7 +97,7 @@ class Chat {
 
     getTimestamp() {
         let now = new Date();
-        return `${now.getHours()}:${now.getMinutes().toString().padStart("0", 2)}`;
+        return `${now.getHours()}:${now.getMinutes().toString().padStart(2, "0")}`;
     }
 
     getMessage() {
@@ -98,7 +109,7 @@ class Chat {
 
     addMessage(message) {
         message.timestamp = this.getTimestamp();
-        this.container.innerHTML += this.messageTemplate.render(message);
+        this.container.appendChild(this.messageTemplate.renderElement(message));
     }
 
     setMessageHtml(html) {
@@ -115,8 +126,7 @@ class Chat {
     }
 
     scrollDown() {
-        this.scroll.getScrollElement().scrollTop = this.container.scrollHeight;
-        //this.container.scrollTop = this.container.scrollHeight;
+        this.messageScroll.getScrollElement().scrollTop = this.container.getBoundingClientRect().height;
     }
     
     wrapEmotes(message) {
@@ -178,10 +188,16 @@ class Chat {
         let self = this;
         
         //Load emotes and build emoteBox Html
-        this.loadEmotes(() => { this.setEmoteHtml(this.buildEmoteHtml()); });
+        this.loadEmotes(() => { 
+            this.setEmoteHtml(this.buildEmoteHtml());
+            this.emoteScroll.recalculate();
+            this.socket.emit("request-chat-update");
+        });
 
         this.showEmotes.addEventListener("click", event => {
-            $(this.emoteBox).fadeToggle();
+            this.emoteScroll.recalculate();
+            $(this.emoteScroll.el).fadeToggle();
+            $(this.emoteBox).fadeIn();
         });
 
         this.emoteBox.addEventListener("click", event => {
@@ -224,6 +240,7 @@ class Chat {
         this.socket.on("chat-update", messages => {
             console.log(messages);
             this.setMessageHtml(this.buildMessageHtml(messages));
+            setTimeout(() => this.scrollDown(), 1000);
         });
     }
 }
@@ -418,7 +435,6 @@ class SliderControl extends EventEmitter {
     }
 
     setPercent(percent) {
-        console.log(`Setting percent ${percent}`);
         if (percent < 0)   percent = 0;
         if (percent > 100) percent = 100;
         this.fillBar.style.width = `${percent}%`;
@@ -902,7 +918,8 @@ const clientRoom = {
                 this.chat = new Chat(this.socket, {
                     username     : localStorage.getItem("watch20iq_chatAlias"),
                     container    : document.querySelector(".chat .messages"),
-                    scrollWrapper: document.querySelector(".chat .scroll-wrapper"),
+                    scrollWrapper: document.querySelector(".chat .messages-scroll-wrapper"),
+                    emoteScrollWrapper: document.querySelector(".chat .emotes-scroll-wrapper"), 
                     chatBox      : document.querySelector(".chat textarea.content"),
                     emoteBox     : document.querySelector(".chat .emotes"),
                     showEmotes   : document.querySelector(".chat .show-emotes")

@@ -336,8 +336,7 @@ class WatchTogetherRoom extends EventEmitter {
         //Notify everyone of the new person 
         this.broadcast("users-update", this.users.getPlain());
         
-        //Send latest state to the client
-        socket.emit("chat-update", this.chat.getLatest());
+        //Send latest state to the client, Note: chat is manually requested by client for now
         socket.emit("playlist-update", this.playlist.getVideos());
         socket.emit("history-update");
 
@@ -421,6 +420,10 @@ class WatchTogetherRoom extends EventEmitter {
         this.broadcast("player-pause", this.video.currentPosition);
     }
 
+    onRequestChatUpdate(socket) {
+        socket.emit("chat-update", this.chat.getLatest());
+    }
+
     onDisconnect(socket, name) {
         if (socket.name) {
             this.users.remove(this.users.findByName(socket.name));
@@ -447,6 +450,7 @@ class WatchTogetherRoom extends EventEmitter {
             this.bindSocketEvent(socket, "player-video-positioning", this.onPlayerVideoPositioning);
             this.bindSocketEvent(socket, "player-ready", this.onPlayerReady);
             this.bindSocketEvent(socket, "request-pause", this.onRequestPause);
+            this.bindSocketEvent(socket, "request-chat-update", this.onRequestChatUpdate);
 
         });
     }

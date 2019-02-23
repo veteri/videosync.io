@@ -72,10 +72,9 @@
             </div>
             <div class="chat">
                 <div class="header">
-                    <div class="overlay"></div>
                     <span class="title"><i class="far fa-comment-alt"></i> Chat</span>
                 </div>
-                <div class="scroll-wrapper" data-simplebar data-simplebar-auto-hide="false">
+                <div class="messages-scroll-wrapper" data-simplebar data-simplebar-auto-hide="false">
                     <div class="messages">
                         <!--<div class="message {{author}}">
                             <span class="timestamp">{{timestamp}}</span>
@@ -85,9 +84,11 @@
                     </div>
                 </div>
                 <div class="chat-box">
-                    <div class="emotes hidden"></div>
+                    <div class="emotes-scroll-wrapper" >
+                        <div class="emotes "></div>
+                    </div>
                     <div class="show-emotes"><i class="far fa-grin"></i></div>
-                    <textarea class="content" name="" id="" cols="30" rows="10" placeholder="Type your message here..."></textarea>
+                    <textarea class="content" name="" id="" cols="30" rows="10" placeholder="Send a message"></textarea>
                 </div>
             </div>
         </div>
