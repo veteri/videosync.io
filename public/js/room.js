@@ -430,6 +430,8 @@ class SliderControl extends EventEmitter {
             isDown: false
         };
 
+        this.emitDragEvents = options.emitDragEvents;
+
         this.setPercent(percent);
         this.bindEvents();
     }
@@ -445,7 +447,12 @@ class SliderControl extends EventEmitter {
     setPercentFromUserEvent(event) {
         let percent = this.getXPercent(event);
         this.setPercent(percent);
-        this.emit("change-by-user", percent);
+
+        if ((["mousemove", "mousedown"].includes(event.type) && this.emitDragEvents)
+             || event.type === "mouseup") {
+
+            this.emit("change-by-user", percent);
+        }
     }
 
     getXPercent(mouseEvent) {
@@ -454,19 +461,21 @@ class SliderControl extends EventEmitter {
     }
 
     bindEvents() {
-        this.container.addEventListener("click", event => {
-            this.setPercentFromUserEvent(event);
-        });
 
         document.addEventListener("mousedown", event => {
             this.mouse.isDown = true;
-            if (this.container.contains(event.target)) {
+            if (event.button === 0 && this.container.contains(event.target)) {
+                this.emit("mouse-down");
                 this.setPercentFromUserEvent(event);
             }
         });
 
         document.addEventListener("mouseup", event => {
             this.mouse.isDown = false;
+            if (event.button === 0 && this.container.contains(event.target)) {
+                this.emit("mouse-up");
+                this.setPercentFromUserEvent(event);
+            }
         });
 
         this.container.addEventListener("mousemove", event => {
@@ -491,13 +500,15 @@ class W2GPlayerControls extends EventEmitter {
         this.volumeSlider    = new SliderControl(this.getLocalVolume(), {
             container: document.querySelector(".volume.slider-control"),
             fillBar: document.querySelector(".volume.slider-control .fill"),
-            handle: document.querySelector(".volume.slider-control .handle")
+            handle: document.querySelector(".volume.slider-control .handle"),
+            emitDragEvents: true
         });
         
         this.progress           = new SliderControl(0, {
             container: document.querySelector(".progress.slider-control"),
             fillBar  : document.querySelector(".progress.slider-control .fill"),
-            handle   : document.querySelector(".progress.slider-control .handle")
+            handle   : document.querySelector(".progress.slider-control .handle"),
+            emitDragEvents: false
         });
 
         this.videoLength      = 0;
@@ -521,10 +532,23 @@ class W2GPlayerControls extends EventEmitter {
     }
 
     startUpdate() {
-        this.intervalID = setInterval(() => {
-            this.updateTime();
-            this.updateProgress();
-        }, 200);
+        //console.log("Controls.startUpdate()");
+        if (this.intervalID === null) {
+            this.intervalID = setInterval(() => {
+                this.updateTime();
+                this.updateProgress();
+            }, 200);
+        } else {
+            console.warn("W2GPlayerControls.startUpdate was called, but its already updating.");
+        }
+    }
+
+    pauseUpdate() {
+        //console.log("Controls.pauseUpdate()");
+        if (this.intervalID !== null) {
+            clearInterval(this.intervalID);
+            this.intervalID = null;
+        }
     }
 
     initialSync(video) {
@@ -533,13 +557,6 @@ class W2GPlayerControls extends EventEmitter {
         this.updateTime();
         this.updateProgress();
     }
-
-    pauseUpdate() {
-        if (this.intervalID !== null) {
-            clearInterval(this.intervalID);
-        }
-    }
-
 
     buildTimeString(seconds) {
         let hms = [
@@ -595,7 +612,19 @@ class W2GPlayerControls extends EventEmitter {
 
             this.progress.on("change-by-user", percent => {
                 console.log("progress changed by user");
-                //this.emit("playercontrols-positioning", this.videoLength * percent);
+                this.emit("playercontrols-positioning", this.videoLength * (percent / 100));
+            });
+
+            //Dont update player progress bar when it is being positioned (dragged)
+            this.progress.on("mouse-down", () => {
+                this.pauseUpdate();
+            });
+
+            //Once user lets go of mouse after positioning, start updating again (if video is running)
+            this.progress.on("mouse-up", () => {
+                if (!this.player.isPaused()) {
+                    this.startUpdate();
+                }
             });
 
             this.player.on("player-play",  () => {
@@ -724,6 +753,10 @@ class W2GYoutubePlayer extends EventEmitter {
         this.player.pauseVideo();
         this.emit("player-pause");
         this.isPlaying = false;
+    }
+
+    isPaused() {
+        return !this.isPlaying;
     }
 
     getTime() {

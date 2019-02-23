@@ -398,6 +398,7 @@ class WatchTogetherRoom extends EventEmitter {
     }
 
     onPlayerVideoPositioning(socket, time) {
+        this.log(`Positioning to ${time}`);
         this.broadcast("player-video-positioning", time);
         this.video.pause();
         this.video.setPosition(time);
