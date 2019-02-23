@@ -501,6 +501,10 @@ header > .search > .add-playlist {
     box-shadow: 0 0 2px #fff;
 }
 
+.chat .simple-bar-scrollbar.simplebar-visible::before {
+    opacity: 0.7
+}
+
 .chat .messages {
   border-top: none;
   font-family: arial;
@@ -511,6 +515,8 @@ header > .search > .add-playlist {
   padding: 10px;
   color: #ccc;
   min-height: 50px;
+  max-width: 100%;
+  word-wrap: break-word;
   line-height: 40px;
 }
 
@@ -591,7 +597,7 @@ header > .search > .add-playlist {
 }
 
 .chat  .chat-box  .emotes {
-    background: #111;
+    background: #0f0e11;
     padding: 20px;
     overflow: hidden;
 }
