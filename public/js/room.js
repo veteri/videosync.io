@@ -139,7 +139,7 @@ class Chat {
 
             if (regex.test(message.content)) {
                 regex = new RegExp(expression, 'gi');
-                link = this.emotePaths[this.emotes[emote].type + "Path"] + this.emotes[emote].image;
+                link = this.emotePaths[this.emotes[emote].type] + this.emotes[emote].image;
                 replacement = this.emoteTemplate.render({key: emote, path: link}); 
                 message.content = message.content.replace(regex, replacement);
             }
@@ -155,7 +155,7 @@ class Chat {
         xhr.addEventListener("load", function () {
             var response = JSON.parse(this.responseText);
             self.emotes = response.emotes;
-            self.emotePaths = response.settings;
+            self.emotePaths = response.paths;
             
             if (typeof callback === "function") {
                  callback();
@@ -175,7 +175,7 @@ class Chat {
         let emote, path;
         return Object.keys(this.emotes).reduce((html, emoteKey) => {
             emote = this.emotes[emoteKey];
-            path = this.emotePaths[`${emote.type}Path`] + emote.image;
+            path = this.emotePaths[emote.type] + emote.image;
             return html + this.emoteTemplate.render({
                 key: emoteKey,
                 path: path

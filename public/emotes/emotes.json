@@ -1,137 +1,156 @@
 {
-  "settings": {
-    "pepePath": "/emotes/pepe/",
-    "twitchPath": "/emotes/twitch/",
-    "otherPath": "/emotes/other/"
+  "paths": {
+    "twitch": "/emotes/twitch/",
+    "pepe": "/emotes/pepe/",
+    "other": "/emotes/other/"
   },
   "emotes": {
-    "derpman": {
-      "image": "derpman.png",
-      "type": "other"
+    "4head": {
+      "image": "4head.png",
+      "type": "twitch"
     },
-    "nani": {
-      "image": "nani!.png",
-      "type": "other"
+    "babyrage": {
+      "image": "babyrage.png",
+      "type": "twitch"
     },
-    "thonking": {
-      "image": "thonking.png",
-      "type": "other"
+    "ban": {
+      "image": "ban.png",
+      "type": "twitch"
     },
-    "dogedeal": {
-      "image": "dogedeal.png",
-      "type": "other"
+    "cmonbruh": {
+      "image": "cmonbruh.png",
+      "type": "twitch"
     },
-    "dogekek": {
-      "image": "dogekek.png",
-      "type": "other"
+    "dansgame": {
+      "image": "dansgame.png",
+      "type": "twitch"
     },
-    "dogewow": {
-      "image": "dogewow.png",
-      "type": "other"
+    "hyperbruh": {
+      "image": "hyperbruh.png",
+      "type": "twitch"
     },
-    "kermitpls": {
-      "image": "kermitpls.png",
-      "type": "other"
+    "kappa": {
+      "image": "kappa.png",
+      "type": "twitch"
     },
-    "kermittea": {
-      "image": "kermittea.png",
-      "type": "other"
+    "klappa": {
+      "image": "klappa.png",
+      "type": "twitch"
     },
-    "suchmeme": {
-      "image": "suchmeme.png",
-      "type": "other"
+    "kreygasm": {
+      "image": "kreygasm.png",
+      "type": "twitch"
     },
-    "thisisfine": {
-      "image": "thisisfine.png",
-      "type": "other"
+    "lul": {
+      "image": "lul.png",
+      "type": "twitch"
     },
-    "wesmart": {
-      "image": "wesmart.png",
-      "type": "other"
+    "nay": {
+      "image": "nay.png",
+      "type": "twitch"
     },
-    "wooferwhat": {
-      "image": "wooferwhat.png",
-      "type": "other"
+    "notlikethis": {
+      "image": "notlikethis.png",
+      "type": "twitch"
     },
-    "wtf": {
-      "image": "wtf.png",
-      "type": "other"
+    "pagchomp": {
+      "image": "pagchomp.png",
+      "type": "twitch"
     },
-    "yeahboi": {
-      "image": "yeahboi.png",
-      "type": "other"
+    "pogchamp": {
+      "image": "pogchamp.png",
+      "type": "twitch"
+    },
+    "residentsleeper": {
+      "image": "residentsleeper.png",
+      "type": "twitch"
+    },
+    "seemsgood": {
+      "image": "seemsgood.png",
+      "type": "twitch"
+    },
+    "tyler1lul": {
+      "image": "tyler1lul.png",
+      "type": "twitch"
+    },
+    "tyler1ul": {
+      "image": "tyler1ul.png",
+      "type": "twitch"
+    },
+    "yea": {
+      "image": "yea.png",
+      "type": "twitch"
+    },
+    "zulul": {
+      "image": "zulul.png",
+      "type": "twitch"
+    },
+    ":mega:": {
+      "image": ":mega:.png",
+      "type": "pepe"
+    },
+    "Pepega": {
+      "image": "Pepega.png",
+      "type": "pepe"
+    },
+    "cozypepo": {
+      "image": "cozypepo.png",
+      "type": "pepe"
+    },
+    "cozyspecial": {
+      "image": "cozyspecial.png",
+      "type": "pepe"
+    },
+    "cozywow": {
+      "image": "cozywow.png",
+      "type": "pepe"
+    },
+    "feels": {
+      "image": "feels.png",
+      "type": "pepe"
+    },
+    "feelsBruh": {
+      "image": "feelsBruh.png",
+      "type": "pepe"
+    },
+    "feelsCacaoMan": {
+      "image": "feelsCacaoMan.png",
+      "type": "pepe"
+    },
+    "feelsDankerMan": {
+      "image": "feelsDankerMan.png",
+      "type": "pepe"
+    },
+    "feelsLoudMan": {
+      "image": "feelsLoudMan.png",
+      "type": "pepe"
+    },
+    "feelsNiceMan": {
+      "image": "feelsNiceMan.png",
+      "type": "pepe"
+    },
+    "feelsNotImpressed": {
+      "image": "feelsNotImpressed.png",
+      "type": "pepe"
+    },
+    "feelsRidgeMan": {
+      "image": "feelsRidgeMan.png",
+      "type": "pepe"
+    },
+    "feelsSleepyman": {
+      "image": "feelsSleepyman.png",
+      "type": "pepe"
+    },
+    "feelsThiccMan": {
+      "image": "feelsThiccMan.png",
+      "type": "pepe"
+    },
+    "feelsWeirdMan": {
+      "image": "feelsWeirdMan.png",
+      "type": "pepe"
     },
     "feelsamazingman": {
       "image": "feelsamazingman.png",
-      "type": "pepe"
-    },
-    "feelssonicman": {
-      "image": "feelssonicman.png",
-      "type": "pepe"
-    },
-
-    "monkacozy": {
-      "image": "monkacozy.png",
-      "type": "pepe"
-    },
-
-    "monkalurk": {
-      "image": "monkalurk.png",
-      "type": "pepe"
-    },
-
-    "pepelove": {
-      "image": "pepelove.png",
-      "type": "pepe"
-    },
-
-    "pepelul": {
-      "image": "pepelul.png",
-      "type": "pepe"
-    },
-
-    "pepelulhair": {
-      "image": "pepelulhair.png",
-      "type": "pepe"
-    },
-
-    "pepeno": {
-      "image": "pepeno.png",
-      "type": "pepe"
-    },
-
-    "pepesleep": {
-      "image": "pepesleep.png",
-      "type": "pepe"
-    },
-
-    "pepeyes": {
-      "image": "pepeyes.png",
-      "type": "pepe"
-    },
-
-    "pepoeducation": {
-      "image": "pepoeducation.png",
-      "type": "pepe"
-    },
-
-    "pepoheadset": {
-      "image": "pepoheadset.png",
-      "type": "pepe"
-    },
-
-    "pepohmm": {
-      "image": "pepohmm.png",
-      "type": "pepe"
-    },
-
-    "pepos": {
-      "image": "pepos.png",
-      "type": "pepe"
-    },
-
-    "pepostop": {
-      "image": "pepostop.png",
       "type": "pepe"
     },
     "feelsanimeman": {
@@ -170,8 +189,16 @@
       "image": "feelsgoodman.png",
       "type": "pepe"
     },
+    "feelsokayman": {
+      "image": "feelsokayman.png",
+      "type": "pepe"
+    },
     "feelspizzaman": {
       "image": "feelspizzaman.png",
+      "type": "pepe"
+    },
+    "feelssonicman": {
+      "image": "feelssonicman.png",
       "type": "pepe"
     },
     "feelssusman": {
@@ -182,16 +209,68 @@
       "image": "feelstastyman.png",
       "type": "pepe"
     },
+    "feelswowman": {
+      "image": "feelswowman.png",
+      "type": "pepe"
+    },
+    "monkaChrist": {
+      "image": "monkaChrist.png",
+      "type": "pepe"
+    },
+    "monkaHandsUp": {
+      "image": "monkaHandsUp.png",
+      "type": "pepe"
+    },
+    "monkaNo": {
+      "image": "monkaNo.png",
+      "type": "pepe"
+    },
+    "monkaOMEGA": {
+      "image": "monkaOMEGA.png",
+      "type": "pepe"
+    },
+    "monkaParanoid": {
+      "image": "monkaParanoid.png",
+      "type": "pepe"
+    },
     "monkabruh": {
       "image": "monkabruh.png",
       "type": "pepe"
     },
-    "poggers": {
+    "monkachamp": {
       "image": "monkachamp.png",
+      "type": "pepe"
+    },
+    "monkacop": {
+      "image": "monkacop.png",
+      "type": "pepe"
+    },
+    "monkacozy": {
+      "image": "monkacozy.png",
+      "type": "pepe"
+    },
+    "monkagang": {
+      "image": "monkagang.png",
+      "type": "pepe"
+    },
+    "monkagub": {
+      "image": "monkagub.png",
       "type": "pepe"
     },
     "monkagun": {
       "image": "monkagun.png",
+      "type": "pepe"
+    },
+    "monkahands": {
+      "image": "monkahands.png",
+      "type": "pepe"
+    },
+    "monkahyper": {
+      "image": "monkahyper.png",
+      "type": "pepe"
+    },
+    "monkalurk": {
+      "image": "monkalurk.png",
       "type": "pepe"
     },
     "monkamega": {
@@ -214,12 +293,44 @@
       "image": "monkasun.png",
       "type": "pepe"
     },
+    "monkatrash": {
+      "image": "monkatrash.png",
+      "type": "pepe"
+    },
+    "monkaveigar": {
+      "image": "monkaveigar.png",
+      "type": "pepe"
+    },
+    "notSureCan": {
+      "image": "notSureCan.png",
+      "type": "pepe"
+    },
+    "peepo": {
+      "image": "peepo.png",
+      "type": "pepe"
+    },
+    "peepoWow": {
+      "image": "peepoWow.png",
+      "type": "pepe"
+    },
+    "peepolove": {
+      "image": "peepolove.png",
+      "type": "pepe"
+    },
+    "pepe420": {
+      "image": "pepe420.png",
+      "type": "pepe"
+    },
     "pepeblanket": {
       "image": "pepeblanket.png",
       "type": "pepe"
     },
     "pepecool": {
       "image": "pepecool.png",
+      "type": "pepe"
+    },
+    "pepefedora": {
+      "image": "pepefedora.png",
       "type": "pepe"
     },
     "pepefinland": {
@@ -230,12 +341,116 @@
       "image": "pepegun.png",
       "type": "pepe"
     },
+    "pepelove": {
+      "image": "pepelove.png",
+      "type": "pepe"
+    },
+    "pepelul": {
+      "image": "pepelul.png",
+      "type": "pepe"
+    },
+    "pepelulhair": {
+      "image": "pepelulhair.png",
+      "type": "pepe"
+    },
+    "pepeno": {
+      "image": "pepeno.png",
+      "type": "pepe"
+    },
+    "pepephone": {
+      "image": "pepephone.png",
+      "type": "pepe"
+    },
     "peperage": {
       "image": "peperage.png",
       "type": "pepe"
     },
+    "pepesleep": {
+      "image": "pepesleep.png",
+      "type": "pepe"
+    },
+    "pepeyes": {
+      "image": "pepeyes.png",
+      "type": "pepe"
+    },
+    "pepo90s": {
+      "image": "pepo90s.png",
+      "type": "pepe"
+    },
+    "pepoChef": {
+      "image": "pepoChef.png",
+      "type": "pepe"
+    },
+    "pepoDJ": {
+      "image": "pepoDJ.png",
+      "type": "pepe"
+    },
+    "pepoShrug": {
+      "image": "pepoShrug.png",
+      "type": "pepe"
+    },
+    "pepoSinger": {
+      "image": "pepoSinger.png",
+      "type": "pepe"
+    },
+    "pepoSleeper": {
+      "image": "pepoSleeper.png",
+      "type": "pepe"
+    },
+    "pepoThumb": {
+      "image": "pepoThumb.png",
+      "type": "pepe"
+    },
+    "pepodj": {
+      "image": "pepodj.png",
+      "type": "pepe"
+    },
+    "pepoeducation": {
+      "image": "pepoeducation.png",
+      "type": "pepe"
+    },
+    "pepog": {
+      "image": "pepog.png",
+      "type": "pepe"
+    },
+    "pepoga": {
+      "image": "pepoga.png",
+      "type": "pepe"
+    },
+    "pepoheadset": {
+      "image": "pepoheadset.png",
+      "type": "pepe"
+    },
+    "pepohmm": {
+      "image": "pepohmm.png",
+      "type": "pepe"
+    },
+    "pepos": {
+      "image": "pepos.png",
+      "type": "pepe"
+    },
+    "peposad": {
+      "image": "peposad.png",
+      "type": "pepe"
+    },
+    "peposleep": {
+      "image": "peposleep.png",
+      "type": "pepe"
+    },
+    "pepostop": {
+      "image": "pepostop.png",
+      "type": "pepe"
+    },
     "pepowant": {
       "image": "pepowant.png",
+      "type": "pepe"
+    },
+    "peppy": {
+      "image": "peppy.png",
+      "type": "pepe"
+    },
+    "puukkopepe": {
+      "image": "puukkopepe.png",
       "type": "pepe"
     },
     "ree": {
@@ -254,149 +469,61 @@
       "image": "wellmemed.png",
       "type": "pepe"
     },
-    "feelsokayman": {
-      "image": "feelsokayman.png",
-      "type": "pepe"
+    "derpman": {
+      "image": "derpman.png",
+      "type": "other"
     },
-    "wow": {
-      "image": "feelswowman.png",
-      "type": "pepe"
+    "dogedeal": {
+      "image": "dogedeal.png",
+      "type": "other"
     },
-    "monkacop": {
-      "image": "monkacop.png",
-      "type": "pepe"
+    "dogekek": {
+      "image": "dogekek.png",
+      "type": "other"
     },
-    "monkagang": {
-      "image": "monkagang.png",
-      "type": "pepe"
+    "dogewow": {
+      "image": "dogewow.png",
+      "type": "other"
     },
-    "monkagub": {
-      "image": "monkagub.png",
-      "type": "pepe"
+    "kermitpls": {
+      "image": "kermitpls.png",
+      "type": "other"
     },
-    "monkahands": {
-      "image": "monkahands.png",
-      "type": "pepe"
+    "kermittea": {
+      "image": "kermittea.png",
+      "type": "other"
     },
-    "monkahyper": {
-      "image": "monkahyper.png",
-      "type": "pepe"
+    "nani!": {
+      "image": "nani!.png",
+      "type": "other"
     },
-    "monkatrash": {
-      "image": "monkatrash.png",
-      "type": "pepe"
+    "suchmeme": {
+      "image": "suchmeme.png",
+      "type": "other"
     },
-    "monkaveigar": {
-      "image": "monkaveigar.png",
-      "type": "pepe"
+    "thisisfine": {
+      "image": "thisisfine.png",
+      "type": "other"
     },
-    "pepe420": {
-      "image": "pepe420.png",
-      "type": "pepe"
+    "thonking": {
+      "image": "thonking.png",
+      "type": "other"
     },
-    "pepefedora": {
-      "image": "pepefedora.png",
-      "type": "pepe"
+    "wesmart": {
+      "image": "wesmart.png",
+      "type": "other"
     },
-    "pepo90s": {
-      "image": "pepo90s.png",
-      "type": "pepe"
+    "wooferwhat": {
+      "image": "wooferwhat.png",
+      "type": "other"
     },
-    "pepog": {
-      "image": "pepog.png",
-      "type": "pepe"
+    "wtf": {
+      "image": "wtf.png",
+      "type": "other"
     },
-    "peposad": {
-      "image": "peposad.png",
-      "type": "pepe"
-    },
-    "peposleep": {
-      "image": "peposleep.png",
-      "type": "pepe"
-    },
-    "peppy": {
-      "image": "peppy.png",
-      "type": "pepe"
-    },
-    "puukkopepe": {
-      "image": "puukkopepe.png",
-      "type": "pepe"
-    },
-    "4head": {
-      "image": "4head.png",
-      "type": "twitch"
-    },
-    "babyrage": {
-      "image": "babyrage.png",
-      "type": "twitch"
-    },
-    "ban": {
-      "image": "ban.png",
-      "type": "twitch"
-    },
-    "cmonbruh": {
-      "image": "cmonbruh.png",
-      "type": "twitch"
-    },
-    "dansgame": {
-      "image": "dansgame.png",
-      "type": "twitch"
-    },
-    "kappa": {
-      "image": "kappa.png",
-      "type": "twitch"
-    },
-    "kreygasm": {
-      "image": "kreygasm.png",
-      "type": "twitch"
-    },
-    "lul": {
-      "image": "lul.png",
-      "type": "twitch"
-    },
-    "nay": {
-      "image": "nay.png",
-      "type": "twitch"
-    },
-    "notlikethis": {
-      "image": "notlikethis.png",
-      "type": "twitch"
-    },
-    "pogchamp": {
-      "image": "pogchamp.png",
-      "type": "twitch"
-    },
-    "residentsleeper": {
-      "image": "residentsleeper.png",
-      "type": "twitch"
-    },
-    "seemsgood": {
-      "image": "seemsgood.png",
-      "type": "twitch"
-    },
-    "tyler1lul": {
-      "image": "tyler1lul.png",
-      "type": "twitch"
-    },
-    "yea": {
-      "image": "yea.png",
-      "type": "twitch"
-    },
-    "hyperbruh": {
-      "image": "hyperbruh.png",
-      "type": "twitch"
-    },
-    "klappa": {
-      "image": "klappa.png",
-      "type": "twitch"
-    },
-    "pagchomp": {
-      "image": "pagchomp.png",
-      "type": "twitch"
-    },
-    "zulul": {
-      "image": "zulul.png",
-      "type": "twitch"
+    "yeahboi": {
+      "image": "yeahboi.png",
+      "type": "other"
     }
   }
 }
