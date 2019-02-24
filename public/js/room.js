@@ -190,12 +190,10 @@ class Chat {
         //Load emotes and build emoteBox Html
         this.loadEmotes(() => { 
             this.setEmoteHtml(this.buildEmoteHtml());
-            this.emoteScroll.recalculate();
             this.socket.emit("request-chat-update");
         });
 
         this.showEmotes.addEventListener("click", event => {
-            this.emoteScroll.recalculate();
             $(this.emoteScroll.el).fadeToggle();
             $(this.emoteBox).fadeIn();
         });
@@ -364,7 +362,7 @@ class VideoLinkInput extends EventEmitter {
     }
 
     add(video) {
-        this.list.innerHTML += this.videoTemplate.render(video);
+        this.list.appendChild(this.videoTemplate.renderElement(video));
     }
 
     remove(id) {
@@ -391,7 +389,7 @@ class VideoLinkInput extends EventEmitter {
     bindEvents() {
 
         this.socket.on("playlist-new-video",    video => this.add(video));
-        this.socket.on("playlist-remove-video", video => this.remove(video));
+        this.socket.on("playlist-remove-video", video => this.remove(video.id));
         this.socket.on("playlist-update", videos => {
             this.setHtml(this.buildHtml(videos));
         });
@@ -934,9 +932,16 @@ const clientRoom = {
         //Link link-input to player and playlist
         this.videoLinkInput.on("video-play",   link => {
             console.log("Forwarding play-video to player");
-            this.player.emitVideoChange(link)
+            this.player.emitVideoChange(link);
         });
+
         this.videoLinkInput.on("playlist-add", link => this.playlist.emitNewVideo(link));
+
+        //Link playlist clicks on videos to player
+        this.playlist.on("video-play", id => {
+            this.player.emitVideoChange(`https://www.youtube.com/watch?v=${id}`);
+        });
+
     },
 
     init() {
@@ -965,7 +970,7 @@ const clientRoom = {
                 });
 
                 this.playlist = new Playlist(this.socket, {
-                    list: document.querySelector(".playlist > .body")
+                    list: document.querySelector(".playlist .body")
                 });
 
                 this.player = new W2GYoutubePlayer(this.socket, {
@@ -990,7 +995,6 @@ const clientRoom = {
                     window.location.href = "http://watch.20iq.club";
                 }
             });
-
     }
 };
 

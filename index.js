@@ -144,7 +144,7 @@ class YoutubeVideo {
             this.timer = pauseable.setInterval(() => {
                 let scale = this.SERVER_TIMER_PERIOD_MS / 1000;
                 if ((this.currentPosition += scale) < this.length) {
-                    console.log(` Position: ${this.currentPosition}, String: ${this.buildTimeString(this.currentPosition)}`);
+                    console.log(`Position: ${this.currentPosition.toFixed(2)}, String: ${this.buildTimeString(this.currentPosition)}`);
                 } else {
                     this.ended = true;
                     this.timer.pause();
@@ -222,16 +222,21 @@ class Playlist {
         });
     }
 
+    removeById(id) {
+        this.videos.splice(this.videos.findIndex(video => video.id === id), 1);
+    }
+
     isEmpty() {
-        return !this.length;
+        return !this.videos.length;
     }
 
 }
 
 class Message {
-    constructor(author, content) {
-        this.author = author;
+    constructor(author, content, color = "") {
+        this.author  = author;
         this.content = content;
+        this.color   = color;
     }
 }
 
@@ -306,11 +311,9 @@ class WatchTogetherRoom extends EventEmitter {
     onChatMessage(socket, msg) {
         let message = new Message(
             escapeHtml(msg.author),
-            escapeHtml(msg.content)
+            escapeHtml(msg.content),
+            escapeHtml(msg.color)
         );
-
-        //Set author chat color
-        message.color = msg.color;
 
         this.chat.addMessage(message);
         this.broadcast("chat-message", message);
@@ -318,6 +321,7 @@ class WatchTogetherRoom extends EventEmitter {
     }
 
     onNewUser(socket, username) {
+
         let name = escapeHtml(username);
         let user = new User(name);
         
@@ -368,12 +372,20 @@ class WatchTogetherRoom extends EventEmitter {
     }
 
     onPlayerVideoEnded(socket) {
-        if (!this.playlist.isEmpty()) {
-            console.log(this.playlist);
-            this.users.waitForEveryone(socket, "ended", () => {
-                this.broadcast("player-video-change", this.playlist.getNext().getPlain());
-            });
-        }
+        this.log(`Video ended for ${socket.name}`);
+        this.users.waitForEveryone(socket, "ended", () => {
+            if (!this.playlist.isEmpty()) {
+                this.log("Playing next video in playlist");
+                let video = this.playlist.getNext().getPlain();
+                this.broadcast("player-video-change",   video);
+                this.broadcast("playlist-remove-video", video); 
+                this.broadcast("chat-message", new Message(
+                    "Server", "Started next video in playlist."
+                ));
+            } else {
+                this.video.pause();
+            }
+        });
     }
 
     onPlayerPause(socket, time) {
@@ -416,6 +428,11 @@ class WatchTogetherRoom extends EventEmitter {
             });
     }
 
+    onPlaylistRemoveVideo(socket, id) {
+        this.playlist.removeById(id);
+        this.broadcast("playlist-remove-video", id);
+    }
+
     onRequestPause(socket) {
         this.video.pause();
         this.broadcast("player-pause", this.video.currentPosition);
@@ -443,6 +460,7 @@ class WatchTogetherRoom extends EventEmitter {
             this.bindSocketEvent(socket, "user-new",     this.onNewUser);
             this.bindSocketEvent(socket, "chat-message", this.onChatMessage);            
             this.bindSocketEvent(socket, "playlist-new-video", this.onPlaylistNewVideo);
+            this.bindSocketEvent(socket, "playlist-remove-video", this.onPlaylistRemoveVideo);
             this.bindSocketEvent(socket, "player-video-change", this.onPlayerVideoChange);
             this.bindSocketEvent(socket, "player-video-ready", this.onPlayerVideoReady);
             this.bindSocketEvent(socket, "player-video-ended", this.onPlayerVideoEnded);
