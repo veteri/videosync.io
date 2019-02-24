@@ -263,7 +263,7 @@ class History {
         this.videos.push(video);
     }
 
-    get() {
+    getVideos() {
         return this.videos;
     }
 
@@ -342,7 +342,7 @@ class WatchTogetherRoom extends EventEmitter {
         
         //Send latest state to the client, Note: chat is manually requested by client for now
         socket.emit("playlist-update", this.playlist.getVideos());
-        socket.emit("history-update");
+        socket.emit("history-update",  this.history.getVideos());
 
     }
 
@@ -373,9 +373,19 @@ class WatchTogetherRoom extends EventEmitter {
 
     onPlayerVideoEnded(socket) {
         this.log(`Video ended for ${socket.name}`);
+
+        //Wait for everyone to end
         this.users.waitForEveryone(socket, "ended", () => {
+
+            //Add video to history and tell client
+            this.history.add(this.video);
+            this.broadcast("history-new-video", this.video.getPlain());
+
+            //If theres videos in playlist
             if (!this.playlist.isEmpty()) {
                 this.log("Playing next video in playlist");
+
+                //Play the next one
                 let video = this.playlist.getNext().getPlain();
                 this.broadcast("player-video-change",   video);
                 this.broadcast("playlist-remove-video", video); 

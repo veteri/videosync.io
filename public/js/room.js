@@ -340,6 +340,61 @@ class VideoLinkInput extends EventEmitter {
     }
 };
 
+ class History extends EventEmitter {
+    constructor(socket, options) {
+        super();
+        this.socket = socket;
+        this.list   = options.list
+        
+        this.videoTemplate = new HTMLTemplate(
+            `<div class="video clearfix" data-id="{{id}}">
+                <div class="thumb">
+                    <img src="{{thumb}}" alt="Thumb">
+                    <span class="length">{{timeString}}</span>
+                </div>
+                <div class="title">{{title}}</div>
+            </div>`
+        );
+
+        this.bindEvents();
+    }
+
+    add(video) {
+        this.list.appendChild(this.videoTemplate.renderElement(video));
+    }
+
+    setHtml(html) {
+        this.list.innerHTML = html;
+    }
+
+    buildHtml(videos) {
+        return videos.reduce((html, video) => html + this.videoTemplate.render(video), "");
+    }
+    
+    bindEvents() {
+
+        this.socket.on("history-new-video",    video => this.add(video));
+        this.socket.on("history-update", videos => {
+            this.setHtml(this.buildHtml(videos));
+        });
+
+        this.list.addEventListener("click", event => {
+
+            let video = event.target.closest(".video");
+            if (video === null) {
+                return;
+            }
+
+            let id = video.getAttribute("data-id");
+            if (event.target.classList.contains("title") 
+                        || event.target.parentElement.classList.contains("thumb")) {
+
+                this.emit("video-play", id);
+            }
+        });
+    }
+}
+
 
  class Playlist extends EventEmitter {
     constructor(socket, options) {
@@ -931,7 +986,7 @@ const clientRoom = {
 
         //Link link-input to player and playlist
         this.videoLinkInput.on("video-play",   link => {
-            console.log("Forwarding play-video to player");
+            console.log("Forwarding video-play to player");
             this.player.emitVideoChange(link);
         });
 
@@ -939,6 +994,11 @@ const clientRoom = {
 
         //Link playlist clicks on videos to player
         this.playlist.on("video-play", id => {
+            this.player.emitVideoChange(`https://www.youtube.com/watch?v=${id}`);
+        });
+
+        //Link history clicks on videos to player
+        this.history.on("video-play", id => {
             this.player.emitVideoChange(`https://www.youtube.com/watch?v=${id}`);
         });
 
@@ -954,13 +1014,13 @@ const clientRoom = {
                 });
 
                 this.chat = new Chat(this.socket, {
-                    username     : localStorage.getItem("watch20iq_chatAlias"),
-                    container    : document.querySelector(".chat .messages"),
-                    scrollWrapper: document.querySelector(".chat .messages-scroll-wrapper"),
+                    username          : localStorage.getItem("watch20iq_chatAlias"),
+                    container         : document.querySelector(".chat .messages"),
+                    scrollWrapper     : document.querySelector(".chat .messages-scroll-wrapper"),
                     emoteScrollWrapper: document.querySelector(".chat .emotes-scroll-wrapper"), 
-                    chatBox      : document.querySelector(".chat textarea.content"),
-                    emoteBox     : document.querySelector(".chat .emotes"),
-                    showEmotes   : document.querySelector(".chat .show-emotes")
+                    chatBox           : document.querySelector(".chat textarea.content"),
+                    emoteBox          : document.querySelector(".chat .emotes"),
+                    showEmotes        : document.querySelector(".chat .show-emotes")
                 });
 
                 this.videoLinkInput = new VideoLinkInput({
@@ -973,17 +1033,21 @@ const clientRoom = {
                     list: document.querySelector(".playlist .body")
                 });
 
+                this.history = new History(this.socket, {
+                    list: document.querySelector(".history .body")
+                });
+
                 this.player = new W2GYoutubePlayer(this.socket, {
-                    id     : "player",
-                    overlay: document.querySelector(".player .overlay"),
-                    ctrlContainer: document.querySelector(".video-controls"),
-                    slider      : document.querySelector("#slider"),
-                    playBtn     : document.querySelector(".play button"),
-                    playIcon    : document.querySelector(".play button i"),
-                    volumeSlider: document.querySelector(".volume input"),
-                    timeDisplay : document.querySelector(".time > .current"),
+                    id                 : "player",
+                    overlay            : document.querySelector(".player .overlay"),
+                    ctrlContainer      : document.querySelector(".video-controls"),
+                    slider             : document.querySelector("#slider"),
+                    playBtn            : document.querySelector(".play button"),
+                    playIcon           : document.querySelector(".play button i"),
+                    volumeSlider       : document.querySelector(".volume input"),
+                    timeDisplay        : document.querySelector(".time > .current"),
                     timeMaxDisplay     : document.querySelector(".time > .length"),
-                    volumeStorageKey : "watch20iq_playerVolume"
+                    volumeStorageKey   : "watch20iq_playerVolume"
                 });
 
                 this.bindEvents(); 
