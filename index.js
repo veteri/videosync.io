@@ -216,6 +216,7 @@ class Playlist {
         this.videos.push(video);
     }
 
+
     remove(video) {
         this.videos = this.videos.filter(currentVideo => {
             return currentVideo.id !== video.id;
@@ -223,7 +224,11 @@ class Playlist {
     }
 
     removeById(id) {
-        this.videos.splice(this.videos.findIndex(video => video.id === id), 1);
+        return this.videos.splice(this.videos.findIndex(video => video.id === id), 1);
+    }
+
+    findById(id) {
+        return this.videos.find(video => video.id === id);
     }
 
     isEmpty() {
@@ -269,6 +274,13 @@ class History {
 
 }
 
+class UserEvent {
+    constructor(type, who) {
+        this.type = type;
+        this.who = who;
+    }
+}
+
 class WatchTogetherRoom extends EventEmitter {
     constructor(id, io, ytApi) {
         super();
@@ -306,6 +318,7 @@ class WatchTogetherRoom extends EventEmitter {
 
     broadcast(event, data) {
         this.socket.emit(event, data);
+        this.emit("broadcast-event", event);
     }
 
     onChatMessage(socket, msg) {
@@ -403,12 +416,14 @@ class WatchTogetherRoom extends EventEmitter {
         this.video.pause();
         this.video.setPosition(time);
         this.broadcast("player-pause", time);
+        this.broadcast("user-event", new UserEvent("pause", socket.name));
     }
 
     onPlayerPlay(socket) {
         if (this.video) {
             this.video.play();
             this.broadcast("player-play");
+            this.broadcast("user-event", new UserEvent("play", socket.name));
         }
     }
 
@@ -422,6 +437,7 @@ class WatchTogetherRoom extends EventEmitter {
     onPlayerVideoPositioning(socket, time) {
         this.log(`Positioning to ${time}`);
         this.broadcast("player-video-positioning", time);
+        this.broadcast("user-event", new UserEvent("positioning", socket.name));
         this.video.pause();
         this.video.setPosition(time);
     }
@@ -431,6 +447,7 @@ class WatchTogetherRoom extends EventEmitter {
             .then(video => {
                 this.playlist.add(video);
                 this.broadcast("playlist-new-video", video.getPlain());
+                //this.broadcast("user-event", new UserEvent("playlist-add", socket.name, video.title));
                 this.log({label: "Added video to playlist", data: video});
             })
             .catch(error => {
@@ -439,8 +456,9 @@ class WatchTogetherRoom extends EventEmitter {
     }
 
     onPlaylistRemoveVideo(socket, id) {
-        this.playlist.removeById(id);
+        let removed = this.playlist.removeById(id);
         this.broadcast("playlist-remove-video", id);
+        //this.broadcast("user-event", new UserEvent("playlist-remove", socket.name, removed.name));
     }
 
     onRequestPause(socket) {
@@ -480,8 +498,8 @@ class WatchTogetherRoom extends EventEmitter {
             this.bindSocketEvent(socket, "player-ready", this.onPlayerReady);
             this.bindSocketEvent(socket, "request-pause", this.onRequestPause);
             this.bindSocketEvent(socket, "request-chat-update", this.onRequestChatUpdate);
-
         });
+
     }
 }
 

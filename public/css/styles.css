@@ -313,6 +313,49 @@ header > .search > .add-playlist {
   transform: translate(-100px, -100px) scale(1) translate(100px, 100px);
 }
 
+.user-notifications {
+    display: none;
+    opacity: 0;
+    position: absolute;
+    top: 40px;
+    right: 40px;
+    min-width: 150px;
+    padding: 10px;
+    border-radius: 10px;
+    z-index: 9999;
+    color: #fff;
+    text-shadow: 0 0 4px #000;
+    text-align: center;
+    line-height: 35px;
+}
+
+.user-notifications.active {
+    display: block;
+    opacity: 1;
+    transition: opacity 400ms;
+}
+
+.user-notifications .icon {
+    text-align: center;
+    font-size: 3.5rem;
+    animation: 400ms noti cubic-bezier(.79,.14,.15,.86);
+}
+
+.user-notifications .username {
+    font-size: 1.2rem;
+}
+
+@keyframes noti {
+    0% {
+        transform: scale(1);
+        text-shadow: 0 0 4px  #000;
+    }
+
+    100% {
+        transform: scale(1.2);
+        text-shadow: 0 10px 20px  #000;
+    }
+}
 /*==============================
             Player 
 ==============================*/

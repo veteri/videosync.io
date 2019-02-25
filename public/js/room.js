@@ -222,7 +222,8 @@ class Chat {
                 });
 
                 this.chatBox.value = "";
-                $(this.emoteBox).fadeOut();
+                //Fade out emote box when sending message
+                $(this.emoteScroll.el).fadeOut();
             }
         });
 
@@ -536,6 +537,85 @@ class SliderControl extends EventEmitter {
             if (this.mouse.isDown) {
                 this.setPercentFromUserEvent(event);
             }
+        });
+    }
+}
+
+class UserNotificationDisplay extends EventEmitter {
+    constructor(socket, options) {
+        super();
+        this.socket    = socket;
+        this.container = options.container;
+        this.outerID = null;
+        this.innerID = null;
+        this.notificationTemplate = new HTMLTemplate(`
+            <div>
+                <i class="{{fa-icon}} icon"></i>
+                <div class="username">{{who}}</div>
+            </div>
+        `);
+
+        this.bindEvents();
+    }
+
+    hasPreviousNotification() {
+       return this.container.hasChildNodes(); 
+    }
+
+    removePreviousNotification() {
+        while (this.container.firstChild) {
+            this.container.removeChild(this.container.firstChild);
+        }
+    }
+
+    getCSSProp(elem, prop) {
+        return window.getComputedStyle(elem, null)[prop];
+    }
+
+    getDuration(elem, kind) {
+        return Number(this.getCSSProp(elem, `${kind}Duration`).slice(0 , -1)) * 1000;
+    }
+
+    queueFadeout() {
+        let icon = this.container.querySelector(".icon");
+        let iconAnimDur = this.getDuration(icon, "animation") || 500;
+        let contTransDur = this.getDuration(this.container, "transition") || 500;
+        let leanTimeMS = 500; 
+
+        if (this.outerID) clearTimeout(this.outerID);   
+        if (this.innerID) clearTimeout(this.innerID);
+
+        this.outerID =  setTimeout(() => {
+            this.container.style.opacity = 0;
+            this.innerID = setTimeout(() => {
+                this.container.classList.remove("active");
+                this.innerID = null;
+                this.outerID = null;
+            }, contTransDur);
+        }, iconAnimDur + leanTimeMS);
+    }
+
+    add(userEvent) {
+        userEvent["fa-icon"] = {
+            play       : "fas fa-play",
+            pause      : "fas fa-pause",
+            positioning: "fas fa-forward"
+        }[userEvent.type]
+
+        if (this.hasPreviousNotification()) {
+            this.removePreviousNotification();
+        }
+
+        this.container.appendChild(this.notificationTemplate.renderElement(userEvent));
+        this.container.classList.add("active");
+        this.container.style.opacity = 1;
+        this.queueFadeout();
+    }
+
+    bindEvents() {
+        this.socket.on("user-event", userEvent => {
+            this.add(userEvent);
+            console.log(userEvent);
         });
     }
 }
@@ -1048,6 +1128,10 @@ const clientRoom = {
                     timeDisplay        : document.querySelector(".time > .current"),
                     timeMaxDisplay     : document.querySelector(".time > .length"),
                     volumeStorageKey   : "watch20iq_playerVolume"
+                });
+
+                this.userNotifications = new UserNotificationDisplay(this.socket, {
+                    container: document.querySelector(".user-notifications")
                 });
 
                 this.bindEvents(); 
