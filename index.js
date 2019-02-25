@@ -163,26 +163,6 @@ class YoutubeVideo {
         if (this.timer) this.timer.pause();
     }
 
-    _play() {
-
-        //Ignore calls when video is already playing.
-        if (this.intervalID) return;
-
-        this.intervalID = setInterval(() => {
-            if (this.currentPosition + 1 <= this.length) {
-                this.currentPosition++;
-                console.log(` Position: ${this.currentPosition}, String: ${this.buildTimeString(this.currentPosition)}`);
-            } else {
-                this.ended = true;
-                this.clearInterval();
-            }
-        }, 1000);
-    }
-
-    _pause() {
-        this.clearInterval();
-    }
-
     setPosition(position) {
         this.currentPosition = position;
     }
@@ -362,6 +342,9 @@ class WatchTogetherRoom extends EventEmitter {
     onPlayerVideoChange(socket, link) {
         this.ytApi.getVideo(link)
             .then(video => {
+                //Add video to history and tell client
+                this.history.add(video);
+                this.broadcast("history-new-video", video.getPlain());
                 //If we had another video, stop playing it
                 if (this.video) this.video.pause();
                 //Then overwrite reference to new video.
@@ -380,6 +363,7 @@ class WatchTogetherRoom extends EventEmitter {
                 this.video.play();
                 this.broadcast("player-everyone-ready");
                 this.log(`Everyone is ready. Emitting start`);
+                this.log({label: "Current video", data: this.video});
             }, 1000);
         });
     }
@@ -390,18 +374,21 @@ class WatchTogetherRoom extends EventEmitter {
         //Wait for everyone to end
         this.users.waitForEveryone(socket, "ended", () => {
 
-            //Add video to history and tell client
-            this.history.add(this.video);
-            this.broadcast("history-new-video", this.video.getPlain());
 
             //If theres videos in playlist
             if (!this.playlist.isEmpty()) {
                 this.log("Playing next video in playlist");
 
                 //Play the next one
-                let video = this.playlist.getNext().getPlain();
-                this.broadcast("player-video-change",   video);
-                this.broadcast("playlist-remove-video", video); 
+                let video = this.playlist.getNext();
+                let vidPlain = video.getPlain();
+                this.video = video;
+
+                //Add video to history and tell client
+                this.history.add(video);
+                this.broadcast("history-new-video",     vidPlain);
+                this.broadcast("player-video-change",   vidPlain);
+                this.broadcast("playlist-remove-video", vidPlain); 
                 this.broadcast("chat-message", new Message(
                     "Server", "Started next video in playlist."
                 ));

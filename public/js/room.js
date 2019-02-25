@@ -361,7 +361,7 @@ class VideoLinkInput extends EventEmitter {
     }
 
     add(video) {
-        this.list.appendChild(this.videoTemplate.renderElement(video));
+        this.list.insertAdjacentElement("afterbegin", this.videoTemplate.renderElement(video));
     }
 
     setHtml(html) {
@@ -369,7 +369,7 @@ class VideoLinkInput extends EventEmitter {
     }
 
     buildHtml(videos) {
-        return videos.reduce((html, video) => html + this.videoTemplate.render(video), "");
+        return videos.reduce((html, video) => this.videoTemplate.render(video) + html, "");
     }
     
     bindEvents() {
