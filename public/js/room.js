@@ -645,9 +645,17 @@ class W2GPlayerControls extends EventEmitter {
         });
 
         this.videoLength      = 0;
-        this.intervalID       = null;
-        this.volumeStorageKey = options.volumeStorageKey;
+        this.updateIntervalMS = 200;
 
+        /*
+         * Right now theres only time display and progress
+         * that are being updated. Generally there can be as
+         * many as you want using the startUpdateFnByKey function.
+         */
+        this.updateTimeIntervalID     = null;
+        this.updateProgressIntervalID = null;
+
+        this.volumeStorageKey = options.volumeStorageKey;
         this.checkForExistingVolume();
         this.volumeSlider.setPercent(this.getLocalVolume());
         this.bindEvents();
@@ -664,24 +672,45 @@ class W2GPlayerControls extends EventEmitter {
         this.progress.setPercent((this.player.getTime() / this.videoLength) * 100);
     }
 
-    startUpdate() {
-        //console.log("Controls.startUpdate()");
-        if (this.intervalID === null) {
-            this.intervalID = setInterval(() => {
-                this.updateTime();
-                this.updateProgress();
-            }, 200);
+    startUpdateFnByKey(key) {
+        if (this[`${key}IntervalID`] === null) {
+            this[`${key}IntervalID`] = setInterval(() => this[key](), this.intervalMS);
         } else {
-            console.warn("W2GPlayerControls.startUpdate was called, but its already updating.");
+            console.warn(`W2GPlayerControls.start${key} was called, but its already updating`);
         }
     }
 
-    pauseUpdate() {
-        //console.log("Controls.pauseUpdate()");
-        if (this.intervalID !== null) {
-            clearInterval(this.intervalID);
-            this.intervalID = null;
+    pauseUpdateFnByKey(key) {
+        if (this[`${key}IntervalID`] !== null) {
+            clearInterval(this[`${key}IntervalID`]); 
+            this[`${key}IntervalID`] = null;
         }
+    }
+
+    startUpdateTime() {
+        this.startUpdateFnByKey("updateTime");
+    }
+
+    pauseUpdateTime() {
+        this.pauseUpdateFnByKey("updateTime");
+    }
+
+    startUpdateProgress() {
+        this.startUpdateFnByKey("updateProgress");
+    }
+    
+    pauseUpdateProgress() {
+        this.pauseUpdateFnByKey("updateProgress");
+    }
+
+    startUpdate() {
+        this.startUpdateTime();
+        this.startUpdateProgress();
+    }
+
+    pauseUpdate() {
+        this.pauseUpdateTime();
+        this.pauseUpdateProgress();
     }
 
     singleUpdate() {
@@ -761,7 +790,9 @@ class W2GPlayerControls extends EventEmitter {
             this.progress.on("mouse-up", () => {
                 if (!this.player.isPaused()) {
                     this.startUpdate();
-                } 
+                } else {
+                    this.startUpdateTime();
+                }
             });
 
             this.player.on("player-play",  () => {
@@ -1002,8 +1033,6 @@ class W2GYoutubePlayer extends EventEmitter {
                  */
                 this.once("player-positioned", () => {
                     this.hideOverlay();
-                    //Find a better way to update time when new position while paused
-                    setTimeout(() => this.controls.updateTime(), 750);
                 });
             }
 
