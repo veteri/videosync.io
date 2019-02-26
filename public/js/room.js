@@ -655,7 +655,7 @@ class W2GPlayerControls extends EventEmitter {
 
     updateTime() {
         if (this.videoLength === 0) return;
-        this.timeDisplay.textContent    = this.buildTimeString(this.player.getTime());
+        this.timeDisplay.textContent    = this.buildTimeString(Math.round(this.player.getTime()));
         this.timeMaxDisplay.textContent = this.buildTimeString(this.videoLength);
     }
 
@@ -684,11 +684,15 @@ class W2GPlayerControls extends EventEmitter {
         }
     }
 
+    singleUpdate() {
+        this.updateTime();
+        this.updateProgress();
+    }
+
     initialSync(video) {
         console.log("Initial sync of controls with video.");
         this.videoLength = video.length;
-        this.updateTime();
-        this.updateProgress();
+        this.singleUpdate();
     }
 
     buildTimeString(seconds) {
@@ -757,7 +761,7 @@ class W2GPlayerControls extends EventEmitter {
             this.progress.on("mouse-up", () => {
                 if (!this.player.isPaused()) {
                     this.startUpdate();
-                }
+                } 
             });
 
             this.player.on("player-play",  () => {
@@ -996,7 +1000,11 @@ class W2GYoutubePlayer extends EventEmitter {
                  * Once its done setting new position,
                  * just hide overlay and do nothing more.
                  */
-                this.once("player-positioned", () => this.hideOverlay());
+                this.once("player-positioned", () => {
+                    this.hideOverlay();
+                    //Find a better way to update time when new position while paused
+                    setTimeout(() => this.controls.updateTime(), 750);
+                });
             }
 
             this.showOverlay();
