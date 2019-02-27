@@ -505,13 +505,29 @@ class SliderControl extends EventEmitter {
         if ((["mousemove", "mousedown"].includes(event.type) && this.emitDragEvents)
              || event.type === "mouseup") {
 
-            this.emit("change-by-user", percent);
+             this.emit("change-by-user", percent);
         }
     }
 
+    getContainerPadding(direction) {
+       return Number(window.getComputedStyle(this.container, null)[`padding-${direction.toLowerCase()}`].slice(0, -2)); 
+    }
+
+    getRelativeMousePosition(mouseEvent) {
+        return mouseEvent.clientX 
+                - (this.container.getBoundingClientRect().left 
+                   + this.getContainerPadding("left")
+        );
+    }
+
     getXPercent(mouseEvent) {
-        let boundingRect = this.container.getBoundingClientRect();
-        return ((mouseEvent.clientX - boundingRect.left) / boundingRect.width) * 100;
+        let padLeft, padRight, realWidth, relativePosition;
+        padLeft             = this.getContainerPadding("left");
+        padRight            = this.getContainerPadding("right");
+        realWidth           = this.container.getBoundingClientRect().width - padLeft - padRight;
+        relativePosition    = this.getRelativeMousePosition(mouseEvent);
+        return (relativePosition / realWidth) * 100;
+        
     }
 
     bindEvents() {
