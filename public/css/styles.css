@@ -368,7 +368,8 @@ header > .search > .add-playlist {
 }
 
 .player:hover .video-controls {
-  visibility: visible;
+    opacity: 1;
+    transition: opacity 300ms;
 }
 
 #player {
@@ -448,7 +449,6 @@ header > .search > .add-playlist {
         Video controls 
 ==============================*/
 .video-controls {
-  /*visibility: hidden;*/
   width: 100%;
   height: 70px;
   background: rgba(0,0,0,0.42);
@@ -456,7 +456,9 @@ header > .search > .add-playlist {
   bottom: 0;
   color: #fff;
   z-index: 69;
-
+  opacity: 0;
+  transition: opacity 300ms;
+  transition-delay: 700ms;
 }
 
 .video-controls .lower {
