@@ -58,7 +58,7 @@ body > .logo {
 header > .logo {
     float: left;
     height: 80px;
-    padding: 10px;
+    padding: 10px 20px;
 }
 
 header > .search {
