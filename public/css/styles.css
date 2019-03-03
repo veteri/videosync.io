@@ -367,7 +367,7 @@ header > .search > .add-playlist {
   height: 720px;
 }
 
-.player:hover .video-controls {
+.player:hover .video-controls:not(.fullscreen) {
     opacity: 1;
     transition: opacity 300ms;
 }
@@ -451,7 +451,7 @@ header > .search > .add-playlist {
 .video-controls {
   width: 100%;
   height: 70px;
-  background: rgba(0,0,0,0.42);
+  background: rgba(0,0,0,0.85);
   position: absolute;
   bottom: 0;
   color: #fff;
@@ -461,23 +461,20 @@ header > .search > .add-playlist {
   transition-delay: 700ms;
 }
 
-.video-controls .lower {
-    display: flex;
-    align-items: center;
-    height: 70px;
+.video-controls.fullscreen {
+    visibility: visible;
 }
 
-.video-controls .play {
-  width: 50px;
-  height: 100%;
+.video-controls.fullscreen:hover {
+    opacity: 1;
+    transition: opacity 300ms;
 }
 
-.video-controls .play button {
-  width: 100%;
+.video-controls button {
   height: inherit;
   padding: 0;
   display: inline-block;
-  font-size: 1.2rem;
+  font-size: 2rem;
   text-align: center;
   background: none;
   border: none;
@@ -487,18 +484,6 @@ header > .search > .add-playlist {
     user-select: none;
 }
 
-.video-controls .volume {
-  width: 120px;
-  height: 100%;
-}
-
-.video-controls .time {
-  width: 140px;
-  font-size: 0.9rem;
-  text-align: center;
-  text-shadow: rgba(0, 0, 0, 0.7) 0px 0px 4px;
-}
-
 .video-controls .progress {
     position: absolute;
     top: -15px;
@@ -506,6 +491,41 @@ header > .search > .add-playlist {
   padding-right: 20px;
   width: 100%;
   height: 30px;
+}
+
+.video-controls .lower {
+    display: flex;
+    justify-content: space-between;
+    padding-right: 20px;
+    height: 70px;
+}
+
+.video-controls .lower .left,
+.video-controls .lower .right {
+    display: flex;
+    align-items: center;
+}
+
+.video-controls .left .play {
+  width: 50px;
+  height: 100%;
+}
+
+.video-controls .left .play button {
+  width: 100%;
+  font-size: 1.6rem;
+}
+
+.video-controls .left .volume {
+  width: 120px;
+  height: 100%;
+}
+
+.video-controls .left .time {
+  width: 140px;
+  font-size: 0.9rem;
+  text-align: center;
+  text-shadow: rgba(0, 0, 0, 0.7) 0px 0px 4px;
 }
 
 /*==============================

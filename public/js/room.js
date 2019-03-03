@@ -660,13 +660,15 @@ class W2GPlayerControls extends EventEmitter {
             emitDragEvents: false
         });
 
+        this.fullScreenBtn = options.fullScreenBtn;
+
         this.videoLength      = 0;
         this.updateIntervalMS = 200;
 
         /*
          * Right now theres only time display and progress
          * that are being updated. Generally there can be as
-         * many as you want using the startUpdateFnByKey function.
+         * many as needed using the startUpdateFnByKey function.
          */
         this.updateTimeIntervalID     = null;
         this.updateProgressIntervalID = null;
@@ -738,6 +740,23 @@ class W2GPlayerControls extends EventEmitter {
         console.log("Initial sync of controls with video.");
         this.videoLength = video.length;
         this.singleUpdate();
+    }
+
+    toggleFullscreen() {
+        let container = this.player.container;
+        if (!document.fullscreen) {
+            this.container.classList.add("fullscreen");
+               container.requestFullscreen       && container.requestFullscreen()
+            || container.mozRequestFullScreen    && container.mozRequestFullScreen()
+            || container.webkitRequestFullscreen && container.webkitRequestFullscreen()
+            || container.msRequestFullscreen     && container.msRequestFullscreen();
+        } else {
+            this.container.classList.remove("fullscreen");
+               document.exitFullscreen       && document.exitFullscreen()
+            || document.mozCancelFullScreen  && document.mozCancelFullScreen()
+            || document.webkitExitFullscreen && document.webkitExitFullscreen()
+            || document.msExitFullscreen     && document.msExitFullscreen();
+        }
     }
 
     buildTimeString(seconds) {
@@ -829,6 +848,10 @@ class W2GPlayerControls extends EventEmitter {
             this.playBtn.addEventListener("click", () => {
                 this.emit( this.player.isPlaying ? "playercontrols-pause" : "playercontrols-play");
             });
+
+            this.fullScreenBtn.addEventListener("click", () => {
+                this.toggleFullscreen();
+            });
         });
 
     }
@@ -837,9 +860,10 @@ class W2GPlayerControls extends EventEmitter {
 class W2GYoutubePlayer extends EventEmitter {
     constructor(socket, options) {
         super();
-        this.socket = socket;
-        this.id     = options.id;
-        this.player = null;
+        this.socket           = socket;
+        this.id               = options.id;
+        this.container        = options.container;
+        this.player           = null;
         this.controls         = new W2GPlayerControls(this, options);
         this.overlay          = options.overlay; 
         this.volumeStoragekey = options.volumeStorageKey;
@@ -1172,6 +1196,7 @@ const clientRoom = {
 
                 this.player = new W2GYoutubePlayer(this.socket, {
                     id                 : "player",
+                    container          : document.querySelector(".player"),
                     overlay            : document.querySelector(".player .overlay"),
                     ctrlContainer      : document.querySelector(".video-controls"),
                     slider             : document.querySelector("#slider"),
@@ -1180,6 +1205,7 @@ const clientRoom = {
                     volumeSlider       : document.querySelector(".volume input"),
                     timeDisplay        : document.querySelector(".time > .current"),
                     timeMaxDisplay     : document.querySelector(".time > .length"),
+                    fullScreenBtn      : document.querySelector(".video-controls .fullscreen"),
                     volumeStorageKey   : "watch20iq_playerVolume"
                 });
 
