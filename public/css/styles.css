@@ -874,11 +874,12 @@ header > .search > .add-playlist {
 footer {
   margin: 0 20px 20px 20px;
   padding: 20px 0;
+  border-radius: 5px;
   text-align: center;
   color: #ebebeb;
   font-size: 1.1rem;
-  background: #111;
-  border-radius: 5px;
+  background: #0f0e11;
+  box-shadow: 0 0 4px #000;
 }
 
 footer.transparent {
