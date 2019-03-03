@@ -865,18 +865,23 @@ class W2GYoutubePlayer extends EventEmitter {
         this.container        = options.container;
         this.player           = null;
         this.controls         = new W2GPlayerControls(this, options);
-        this.overlay          = options.overlay; 
+        this.welcomeOverlay   = options.welcomeOverlay;
+        this.syncingOverlay   = options.syncingOverlay; 
         this.volumeStoragekey = options.volumeStorageKey;
         this.bindEvents();
         this.loadIFrameAPI();
     }
 
-    showOverlay() {
-        this.overlay.classList.add("active");
+    showSyncingOverlay() {
+        this.syncingOverlay.classList.add("active");
     }
 
-    hideOverlay() {
-        this.overlay.classList.remove("active");
+    hideSyncingOverlay() {
+        this.syncingOverlay.classList.remove("active");
+    }
+
+    hideWelcomeOverlay() {
+        this.welcomeOverlay.classList.remove("active");
     }
 
     loadIFrameAPI() {
@@ -1005,13 +1010,18 @@ class W2GYoutubePlayer extends EventEmitter {
                 
                 this.once("player-paused", () => {
                     this.controls.initialSync(video);
+                    this.hideSyncingOverlay();
                 });
 
                 this.setVolume(0);
                 this.loadVideo(video.id);
+                this.showSyncingOverlay();
+                this.hideWelcomeOverlay();
             });
         });
-
+        
+        //When the client gets a player video change for the first time, remove the welcome message.
+        this.socket.once("player-video-change", () => this.hideWelcomeOverlay());
         /*
          * Once someone changes video, add a "once" event listener
          * to the emitter, so that when video is buffered and starts playing
@@ -1026,19 +1036,20 @@ class W2GYoutubePlayer extends EventEmitter {
                 console.log("Emitting player-video-ready");
             });
 
-            this.showOverlay();
-            console.log("player-video-change: showOverlay");
+            this.showSyncingOverlay();
+            console.log("player-video-change: showSyncingOverlay");
             this.controls.initialSync(video);
             this.setVolume(0);
             this.loadVideo(video.id)
         });
+
 
         /*
          * Once everyone is ready, server will send 'player-everyone-ready',
          * then just start playing the video.
          */
         this.socket.on("player-everyone-ready", () => {
-            this.hideOverlay();
+            this.hideSyncingOverlay();
             console.log("Everyone is ready.");
             this.play();
         });
@@ -1049,7 +1060,6 @@ class W2GYoutubePlayer extends EventEmitter {
         });
 
         this.socket.on("player-play", () => this.play());
-
         this.on("player-video-ended", () => this.pause());
 
         this.socket.on("player-video-positioning", time => {
@@ -1072,11 +1082,11 @@ class W2GYoutubePlayer extends EventEmitter {
                  * just hide overlay and do nothing more.
                  */
                 this.once("player-positioned", () => {
-                    this.hideOverlay();
+                    this.hideSyncingOverlay();
                 });
             }
 
-            this.showOverlay();
+            this.showSyncingOverlay();
             console.log("player-video-positioning, showOverlay");
             this.setVolume(0);
             this.setPosition(time);
@@ -1197,7 +1207,8 @@ const clientRoom = {
                 this.player = new W2GYoutubePlayer(this.socket, {
                     id                 : "player",
                     container          : document.querySelector(".player"),
-                    overlay            : document.querySelector(".player .overlay"),
+                    welcomeOverlay     : document.querySelector(".player .welcome-overlay"),
+                    syncingOverlay     : document.querySelector(".player .syncing-overlay"),
                     ctrlContainer      : document.querySelector(".video-controls"),
                     slider             : document.querySelector("#slider"),
                     playBtn            : document.querySelector(".play button"),
