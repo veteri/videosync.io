@@ -111,12 +111,13 @@ class UserCollection {
 }
 
 class YoutubeVideo {
-    constructor(id, title, length, thumb) {
+    constructor(id, title, length, thumb, uploader) {
         this.id         = id;
         this.title      = title;
         this.length     = length;
         this.timeString = this.buildTimeString(length);
         this.thumb      = thumb;
+        this.uploader   = uploader;
         this.timer      = null;
         this.currentPosition = 0;
         this.ended           = false;
@@ -130,7 +131,8 @@ class YoutubeVideo {
             thumb     : this.thumb,
             length    : this.length,
             timeString: this.timeString,
-            position  : this.currentPosition
+            position  : this.currentPosition,
+            uploader  : this.uploader
         } 
     }
 
@@ -264,14 +266,15 @@ class UserEvent {
 class WatchTogetherRoom extends EventEmitter {
     constructor(id, io, ytApi) {
         super();
-        this.id       = id; 
-        this.socket   = io.of("/" + id);
-        this.ytApi    = ytApi;
-        this.video    = null;
-        this.users    = new UserCollection();
-        this.playlist = new Playlist();
-        this.history  = new History();
-        this.chat     = new Chat();
+        this.id             = id; 
+        this.socket         = io.of("/" + id);
+        this.ytApi          = ytApi;
+        this.video          = null;
+        this.selfDestructID = null;
+        this.users          = new UserCollection();
+        this.playlist       = new Playlist();
+        this.history        = new History();
+        this.chat           = new Chat();
         this.bindEvents();
     }
 
@@ -337,6 +340,13 @@ class WatchTogetherRoom extends EventEmitter {
         socket.emit("playlist-update", this.playlist.getVideos());
         socket.emit("history-update",  this.history.getVideos());
 
+    }
+
+    onVideoSearch(socket, searchTerm) {
+        this.ytApi.videoSearch(searchTerm)
+            .then(videos => {
+                socket.emit("video-search-reply", videos.map(video => video.getPlain()));
+            });
     }
 
     onPlayerVideoChange(socket, link) {
@@ -463,7 +473,8 @@ class WatchTogetherRoom extends EventEmitter {
             this.broadcast("users-update", this.users.getPlain());
             this.log(`Disconnected: ${socket.name}`);
             if (this.users.isEmpty()) {
-                this.emit("w2groom-empty");
+                this.selfDestructTimer = setTimeout(() => this.emit("w2groom-empty"), 10 * 1000);
+                this.log("Room empty. Initiating self destruction");
             }
         }
     }
@@ -471,9 +482,22 @@ class WatchTogetherRoom extends EventEmitter {
     bindEvents() {
         this.socket.on("connection", socket => {
             this.log("New socket connected");
+
+            /*
+             * If the self destruct timer was initiated
+             * (because everyone left) and someone connects again
+             * then cancel the self destruction of the room.
+             */
+            if (this.selfDestructTimer) {
+                clearTimeout(this.selfDestructTimer);
+                this.selfDestructTimer = null;
+                this.log("Self destruction aborted due to new connection");
+            }
+
             this.bindSocketEvent(socket, "disconnect",   this.onDisconnect);
             this.bindSocketEvent(socket, "user-new",     this.onNewUser);
             this.bindSocketEvent(socket, "chat-message", this.onChatMessage);            
+            this.bindSocketEvent(socket, "video-search", this.onVideoSearch);
             this.bindSocketEvent(socket, "playlist-new-video", this.onPlaylistNewVideo);
             this.bindSocketEvent(socket, "playlist-remove-video", this.onPlaylistRemoveVideo);
             this.bindSocketEvent(socket, "player-video-change", this.onPlayerVideoChange);
@@ -485,6 +509,7 @@ class WatchTogetherRoom extends EventEmitter {
             this.bindSocketEvent(socket, "player-ready", this.onPlayerReady);
             this.bindSocketEvent(socket, "request-pause", this.onRequestPause);
             this.bindSocketEvent(socket, "request-chat-update", this.onRequestChatUpdate);
+
         });
 
     }
@@ -526,7 +551,11 @@ class LobbyManager extends EventEmitter {
 
 class YoutubeAPI {
     constructor(key) {
-        this.baseUrl = "https://www.googleapis.com/youtube/v3/videos";
+        this.baseUrl = "https://www.googleapis.com/youtube/v3";
+        this.endPoints = {
+            video: "/videos",
+            search: "/search"
+        };
         this.key = key;
     }
 
@@ -565,7 +594,9 @@ class YoutubeAPI {
                 part: "snippet,contentDetails"
             };
 
-            request({url: this.baseUrl, qs: properties}, (error, res, body) => {
+            let url = this.baseUrl + this.endPoints.video;
+
+            request({url: url, qs: properties}, (error, res, body) => {
 
               
                 if (error) {
@@ -585,10 +616,52 @@ class YoutubeAPI {
                 title = video.snippet.title;
                 thumb = video.snippet.thumbnails.high.url;
                 duration = this.convertISOToSeconds(video.contentDetails.duration);
-                
-                resolve(new YoutubeVideo(id, title, duration, thumb));
+               
+                //Leave uploader empty, because we dont care
+                resolve(new YoutubeVideo(id, title, duration, thumb, ""));
             });
 
+        });
+    }
+
+    videoSearch(keyword) {
+
+        return new Promise((resolve, reject) => {
+
+            let url = this.baseUrl + this.endPoints.search;
+            let properties = {
+                key: this.key,
+                maxResults : 25,
+                part: "snippet",
+                q: keyword,
+                type: "video"
+            };
+
+            request({url: url, qs: properties}, (error, res, body) => {
+              
+                if (error) {
+                    reject(error);
+                    return;
+                }
+
+                let response = JSON.parse(body);
+
+                if (response.pageInfo.totalResults === 0) {
+                    reject("No results");
+                    return;
+                }
+
+                let videos = response.items.map(item => {
+                    return new YoutubeVideo(
+                     /*id       */ item.id.videoId,
+                     /*title    */ item.snippet.title,
+                     /*length   */ 0,
+                     /*tumb     */ item.snippet.thumbnails.high.url,
+                     /*uploader */ item.snippet.channelTitle
+                    );
+                });
+                resolve(videos);
+            });
         });
     }
 }
@@ -615,12 +688,12 @@ class WatchTogether {
         let self = this;
 
         this.lobbyManager.on("new-room", room => {
+            console.log(`Created new room [${room.id}].`);
             this.rooms.push(room)
-            /*room.on("w2groom-empty", () => {
+            room.on("w2groom-empty", () => {
                 this.removeRoom(room);
                 console.log(`!! Room [${room.id}] destroyed. !!`);
-            });*/
-            console.log(this.rooms);
+            });
         });
 
         this.io.sockets.on("connection", socket => {
@@ -638,8 +711,6 @@ class WatchTogether {
 }
 
 let w2g = new WatchTogether(io);
-
-
 
 /**
  * Created by tyyr on 12.07.2018.

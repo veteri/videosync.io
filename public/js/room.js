@@ -3,11 +3,11 @@ class HTMLTemplate {
         this.template = template; 
     }
     
-    render(data) {
+    render(data = {}) {
         return this.template.replace(/{{(.*?)}}/gi, (match, key) => data[key]);
     }
 
-    renderElement(data) {
+    renderElement(data = {}) {
         const wrapper = document.createElement("div");
         wrapper.innerHTML = this.render(data);
         return wrapper.firstElementChild;
@@ -283,10 +283,142 @@ class EventEmitter {
 
 }
 
-class VideoLinkInput extends EventEmitter {
+class FullscreenModal {
+    constructor(options = {}) {
+        this.id      = Math.random().toString(16).slice(2);
+        this.content = options.content || {};
+        this.opacity = options.opacity;
+
+        //Save reference on window so other instances can interact
+        if (window["fullscreen-modal"] === undefined) {
+            window["fullscreen-modal"] = {};
+        }
+
+        window["fullscreen-modal"][this.id] = this;
+
+        this.modalTemplate = new HTMLTemplate(`
+            <div class="fullscreen-modal" id="fullscreen-modal-${this.id}" data-simplebar>
+                <div class="close-modal">
+                    <svg viewbox="0 0 40 40">
+                        <path class="close-x" d="M 10,10 L 30,30 M 30,10 L 10,30" />
+                    </svg>
+                </div>
+                <div class="content">{{content}}</div>
+                <div class="overlay"></div>
+            </div>
+        `);
+    }
+
+    closeAll() {
+        let modals = document.querySelectorAll(".fullscreen-modal");
+        modals.forEach(modal => window["fullscreen-modal"][modal.id].close());
+    }
+
+    setContent(content) {
+        this.content = content;
+    }
+
+    open() {
+        let modalElement = this.modalTemplate.renderElement({content: this.content});
+        modalElement.querySelector(".close-modal").addEventListener("click", () => this.close());
+
+        document.body.classList.add("fullscreen-modal-open");
+        document.body.appendChild(modalElement); 
+    }
+
+    openWithContent(content) {
+        this.setContent(content);
+        this.open();
+    }
+
+    close() {
+        document.body.classList.add("fullscreen-modal-close");
+        document.body.classList.remove("fullscreen-modal-open");
+
+        let modal = document.querySelector(`#fullscreen-modal-${this.id}`);
+        modal.addEventListener("animationend", event => {
+            modal.parentNode.removeChild(event.target);
+            this.clearBodyClasses();
+        });
+    }
+
+    clearBodyClasses() {
+        document.body.classList.remove("fullscreen-modal-open");
+        document.body.classList.remove("fullscreen-modal-close");
+    }
+}
+
+class VideoSearchResultDisplay extends EventEmitter {
+    constructor(socket) {
+        super();
+        this.socket = socket;
+        this.modal  = new FullscreenModal();
+        this.videoResultTemplate = new HTMLTemplate(`
+            <div class="cell video-search-result" data-id="{{id}}" style="animation-delay: {{delay}}ms">
+                <div class="header">
+                    <img class="thumbnail" src="{{thumb}}">
+                    <div class="actions">
+                        <button class="play"><i class="fas fa-play"></i></button>
+                        <button class="add-to-playlist"><i class="fas fa-list-ul"></i></button>
+                    </div>
+                </div>
+                <div class="body">
+                    <div class="title">{{title}}</div>
+                    <div class="uploader">{{uploader}}</div>
+                </div>
+            </div>
+        `);
+
+        this.bindEvents();
+    }
+
+    show(videos) {
+        let content = videos.reduce((html, video, index) => {
+            //Wait 50 second for each fadeIn, 300 is modal opening duration
+            video.delay = (index + 1) * 50 + 300; 
+            return html + this.videoResultTemplate.render(video);
+        }, "");        
+
+        this.modal.openWithContent(content);
+        this.bindDynamicEvents();
+    }
+
+    emitVideoSearch(keyword) {
+        this.socket.emit("video-search", keyword);
+    }
+
+    bindDynamicEvents() {
+        document.querySelectorAll(".video-search-result").forEach(element => {
+            element.addEventListener("click", event => {
+                let nodeClasses  = event.target.classList;
+                let pNodeClasses = event.target.parentNode.classList;
+                let videoId      = element.dataset.id;
+
+                if (nodeClasses.contains("play") || pNodeClasses.contains("play")) {
+                    this.emit("video-play", videoId);
+                    this.modal.close();
+                }
+
+                if (nodeClasses.contains("add-to-playlist") || pNodeClasses.contains("add-to-playlist")) {
+                    this.emit("playlist-add", videoId);
+                }
+            });
+        });
+    }
+
+    bindEvents() {
+        this.socket.on("video-search-reply", videos => {
+            console.log(videos);
+            this.show(videos);
+        });
+    }
+}
+
+class VideoSearchControl extends EventEmitter {
     constructor(options) {
         super();
         this.input         = options.input;
+        this.searchBtn     = options.searchBtn;
         this.playVideo     = options.playVideo;
         this.addToPlaylist = options.addToPlaylist;
         this.bindEvents();
@@ -316,15 +448,19 @@ class VideoLinkInput extends EventEmitter {
 
         this.input.addEventListener("keyup", event => {
             if (event.keyCode === 13 && this.isYoutubeLink(this.input.value)) {
-                console.log("VideoLinkInput: Emitting video-play with " + this.input.value);
+                console.log("VideoSearchControl: Emitting video-play with " + this.input.value);
                 this.emit("video-play", this.input.value);
                 this.removeError();
             }
         });
 
+        this.searchBtn.addEventListener("click", event => {
+            this.emit("video-search", this.input.value);
+        });
+
         this.playVideo.addEventListener("click", event => {
             if (this.isYoutubeLink(this.input.value)) {
-                console.log("VideoLinkInput: Emitting video-play with " + this.input.value);
+                console.log("VideoSearchControl: Emitting video-play with " + this.input.value);
                 this.emit("video-play", this.input.value);
                 this.removeError();
             }
@@ -332,7 +468,7 @@ class VideoLinkInput extends EventEmitter {
 
         this.addToPlaylist.addEventListener("click", event => {
             if (this.isYoutubeLink(this.input.value)) {
-                console.log("VideoLinkInput: Emitting playlist-add with " + this.input.value);
+                console.log("VideoSearchControl: Emitting playlist-add with " + this.input.value);
                 this.emit("playlist-add", this.input.value);
                 this.socket
                 this.removeError();
@@ -1151,13 +1287,28 @@ const clientRoom = {
             this.socket.emit("user-new", this.userDisplay.username);
         });
 
-        //Link link-input to player and playlist
-        this.videoLinkInput.on("video-play",   link => {
+        //Link searchcontrol to player 
+        this.videoSearchControl.on("video-play",   link => {
             console.log("Forwarding video-play to player");
             this.player.emitVideoChange(link);
         });
 
-        this.videoLinkInput.on("playlist-add", link => this.playlist.emitNewVideo(link));
+        //Link searchcontrol to playlist 
+        this.videoSearchControl.on("playlist-add", link => this.playlist.emitNewVideo(link));
+
+
+        //Link searchcontrol to video search result display
+        this.videoSearchControl.on("video-search", keyword => this.videoSearchResultDisplay.emitVideoSearch(keyword));
+
+        //Link videoSearchResultDisplay to player
+        this.videoSearchResultDisplay.on("video-play", id => {
+            this.player.emitVideoChange(`https://www.youtube.com/watch?v=${id}`);
+        });
+
+        //Link videoSearchResultDisplay to playlist
+        this.videoSearchResultDisplay.on("playlist-add", id => {
+            this.playlist.emitNewVideo(`https://www.youtube.com/watch?v=${id}`);
+        });
 
         //Link playlist clicks on videos to player
         this.playlist.on("video-play", id => {
@@ -1190,11 +1341,14 @@ const clientRoom = {
                     showEmotes        : document.querySelector(".chat .show-emotes")
                 });
 
-                this.videoLinkInput = new VideoLinkInput({
-                    input        : document.querySelector(".yt-link"),
+                this.videoSearchControl = new VideoSearchControl({
+                    input        : document.querySelector(".search > .yt-link"),
+                    searchBtn    : document.querySelector(".search > .video-search"),
                     playVideo    : document.querySelector(".search > .play"),
                     addToPlaylist: document.querySelector(".search > .add-playlist"),
                 });
+
+                this.videoSearchResultDisplay = new VideoSearchResultDisplay(this.socket);
 
                 this.playlist = new Playlist(this.socket, {
                     list: document.querySelector(".playlist .body")

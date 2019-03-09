@@ -74,7 +74,7 @@ header > .search {
 header > .search > .yt-link {
   display: block;
   float: left;
-  width: calc(100% - 87px * 2); /*86px * 2 = 2 buttons*/
+  width: calc(100% - 87px * 3); /*86px * 2 = 2 buttons*/
   min-width: 150px;
   margin-top: 12px;
   padding: 20px;
@@ -90,6 +90,7 @@ header > .search > .yt-link.error {
   font-weight: bold;
 }
 
+header > .search > .video-search,
 header > .search > .play,
 header > .search > .add-playlist {
   float: left;
@@ -103,6 +104,8 @@ header > .search > .add-playlist {
   background: #666;
 }
 
+
+header > .search > .video-search,
 header > .search > .play {
   border-right: 1px solid #333;
 }
@@ -256,6 +259,193 @@ header > .search > .add-playlist {
 
 
 /*==============================
+        Fullscreen Modal 
+==============================*/
+@keyframes open-fullscreen-modal {
+    0% {
+        opacity: 0;
+        -webkit-transform: scale(.85);
+        transform: scale(.85);
+    }
+    100% {
+        -webkit-transform: scale(1);
+        transform: scale(1);
+    }
+}
+
+@keyframes close-fullscreen-modal {
+    0% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+body.fullscreen-modal-open {
+    overflow: hidden;
+}
+
+body.fullscreen-modal-open .fullscreen-modal {
+    animation: open-fullscreen-modal ease 300ms;
+}
+
+body.fullscreen-modal-close .fullscreen-modal {
+    animation: close-fullscreen-modal ease 500ms;
+}
+
+.fullscreen-modal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 80px 20px 20px 20px;
+    z-index: 9999;
+    background: #19171c;
+}
+
+.fullscreen-modal .content {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+}
+
+.fullscreen-modal .content .cell {
+    width: calc(100% / 5 - 2rem);
+    margin: 1rem;
+}
+
+.fullscreen-modal .content .cell img {
+    max-width: 100%;
+}
+
+.fullscreen-modal .close-modal {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+.fullscreen-modal .close-modal svg {
+    display: block;
+    width: 50px;
+    height: 50px;
+    transition: transform 300ms;
+    cursor: pointer;
+}
+
+.fullscreen-modal .close-modal svg:hover {
+    transform: rotate(180deg);
+}
+
+.fullscreen-modal .close-modal svg .close-x {
+    stroke: white;
+    fill: transparent;
+    stroke-linecap: round;
+    stroke-width: 2;
+}
+
+/*==========================================
+   Video seach results for Fullscreen Modal 
+===========================================*/
+@keyframes fadeIn {
+    0%   { opacity: 0; } 
+    100% { opacity: 1; }
+}
+
+@keyframes grow {
+    0%   { transform: scale(0.7); }
+    100% { transform: scale(1.0); }
+}
+
+.video-search-result {
+    opacity: 0;
+    color: #fff; 
+    min-height: 350px;
+    transition: transform 300ms;
+    animation: fadeIn ease 600ms forwards, grow ease 600ms; 
+}
+
+.video-search-result:hover {
+    /*transform: scale(1.08);*/
+}
+
+.video-search-result .header {
+    position: relative;
+    height: 243px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    overflow: hidden;
+}
+
+.video-search-result:hover .header::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.video-search-result .actions {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+}
+
+.video-search-result:hover .actions {
+    display: block;
+}
+
+.video-search-result .actions .play,
+.video-search-result .actions .add-to-playlist {
+    background: none;
+    border: none;
+    text-shadow: 0 0 4px #000;   
+
+}
+
+.video-search-result .actions .play {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 3rem;
+}
+
+.video-search-result .actions .add-to-playlist {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: white;
+    font-size: 2rem;
+}
+
+.video-search-result .body {
+    overflow: hidden;
+    padding: 10px;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    background: #0f0e11;
+}
+
+.video-search-result .uploader {
+    color: #aaa;
+    margin-top: 10px;
+    padding: 5px;
+    background: #2b2b2b;
+    border-radius: 5px;
+    display: inline-block;
+}
+
+/*==============================
         Eclipse Loading 
 ==============================*/
 @keyframes lds-eclipse {
@@ -384,7 +574,7 @@ header > .search > .add-playlist {
     width: 100%;
     height: 100%;
     position: absolute;
-    background: rgba(0, 0, 0, 0.85);
+    background: rgba(0, 0, 0, 1);
     opacity: 0;
     z-index: 0;
     transition: opacity 750ms;
