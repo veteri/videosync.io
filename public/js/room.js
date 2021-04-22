@@ -23,7 +23,7 @@ class UserDisplay {
         this.username     = options.username;
         this.container    = document.querySelector(options.selector); 
         this.userTemplate = new HTMLTemplate(
-            `<div class="user clearfix" data-user="{{name}}">
+            `<div class="user" data-user="{{name}}">
                  <img class="avatar" src="/images/user.png" alt="">
                  <div class="name">{{name}}</div>
              </div>`

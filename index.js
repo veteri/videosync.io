@@ -712,10 +712,6 @@ class WatchTogether {
 
 let w2g = new WatchTogether(io);
 
-/**
- * Created by tyyr on 12.07.2018.
- */
-
 
 app.use("/", express.static(__dirname + "/public"));
 //app.use(express.static(path.join(__dirname, 'public')));
@@ -731,6 +727,8 @@ app.get('/room/:id', function(req, res){
         res.sendFile(__dirname + "/views/badroomid.html");
     }
 });
+
+/*
 
 const YTApi = {
 
@@ -1044,6 +1042,8 @@ io.sockets.on("connection", function(socket) {
     }
 
 });
+
+*/
 
 http.listen(51911, function(){
     console.log('Listening on 127.0.0.1:51911');
