@@ -1,12 +1,12 @@
 {
-  "name": "downloader",
+  "name": "videosync",
   "version": "1.0.0",
-  "description": "Downloads episodes from kissanime.",
-  "main": "main.js",
+  "description": "Watch youtube videos together",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "tyyr,zwap",
+  "author": "veteri",
   "license": "ISC",
   "dependencies": {
     "cheerio": "^1.0.0-rc.2",
