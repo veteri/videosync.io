@@ -1,7 +1,7 @@
 const ClientCreateRoom = {
 
     socket: io({transports: ["websocket"]}),
-    FQDN: "https://watch.20iq.club/",
+    FQDN: "https://videosync.io",
     DEV: "/",
 
     requestRoom() {
